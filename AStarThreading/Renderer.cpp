@@ -65,6 +65,8 @@ void Renderer::drawRect(const Rect& r, const Colour& c) {
 	sr.x = (int)r.pos.x;
 	sr.y = (int)r.pos.y;
 	SDL_RenderFillRect(sdl_renderer, &sr);
+	SDL_SetRenderDrawColor(sdl_renderer, 255, 255, 255, 255);
+	SDL_RenderDrawRect(sdl_renderer, &sr);
 
 }
 

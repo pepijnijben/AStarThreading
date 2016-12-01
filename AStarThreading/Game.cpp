@@ -4,9 +4,14 @@ using namespace std;
 
 #include "LTimer.h"
 #include "Game.h"
+#include "AStar.h"
+#include "Tile.h"
 
 const int SCREEN_FPS = 60;
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
+
+int Game::TileSize = 20;
+int Game::TileCount = 20;
 
 Game::Game()
 {
@@ -40,8 +45,25 @@ bool Game::init() {
 	inputManager.AddListener(EventListener::Event::PAUSE, this);
 	inputManager.AddListener(EventListener::Event::QUIT, this);
 
-	return true;
+	for (int x = 0; x < TileCount; x ++)
+	{
+		for (int y = 0; y < TileCount; y++)
+		{
+			gameObjects.push_back(new Tile(x * TileSize + 10, y * TileSize + 10, TileSize, Colour(0, 255, 0)));
+		}
+	}
 
+	AStar aStar;
+	aStar.DefineGraph(TileCount, TileSize);
+
+	vector<Point2D> path = aStar.PathFromTo(0, 0, 15, 15);
+
+	for(Point2D point : path)
+	{
+		gameObjects.push_back(new Tile(point.x, point.y, 20, Colour(0, 0, 255)));
+	}
+
+	return true;
 }
 
 void Game::destroy()

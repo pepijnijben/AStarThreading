@@ -32,5 +32,8 @@ public:
 	void loop();
 
 	void onEvent(EventListener::Event);
+
+	static int TileSize;
+	static int TileCount;
 };
 

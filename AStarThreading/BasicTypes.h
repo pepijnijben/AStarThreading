@@ -1,9 +1,7 @@
 #pragma once
 #include <vector>
-
-
-//Define some basic types needed for 2D graphics
-
+#include <iostream>
+#include <sstream>
 
 class Edge;
 
@@ -12,6 +10,15 @@ public:
 	float x, y;
 	Point2D(float _x = 0, float _y = 0) :x(_x), y(_y) { };
 	float length() { return (float)sqrt(x*x + y*y); };
+
+	std::string ToString()
+	{
+		std::stringstream ss;
+
+		ss << "(" << x << ", " << y << ")";
+
+		return ss.str();
+	}
 
 	friend Point2D operator+(const Point2D& a, const Point2D& b)
 	{
@@ -84,7 +91,7 @@ public:
 	Node * destination;
 	float cost;
 
-	Edge(Node * n, float c) : destination(n) { }
+	Edge(Node * n, float c) : destination(n), cost(c) { }
 };
 
 class AStarValue

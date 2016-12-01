@@ -2,22 +2,22 @@
 
 Node* AStar::GetNode(Point2D pos, bool create)
 {
-	if (nodeMap.find(pos) != nodeMap.end())
+	if (nodeMap.find(pos.ToString()) != nodeMap.end())
 	{
-		return nodeMap[pos];
+		return nodeMap[pos.ToString()];
 	}
 	if (!create)
 		throw std::exception("No such element found");
 
 	Node* node = new Node(pos);
-	nodeMap[pos] = node;
+	nodeMap[pos.ToString()] = node;
 
 	return node;
 }
 
 void AStar::ClearAll()
 {
-	for (std::map<Point2D, Node*>::iterator itr = nodeMap.begin(); itr != nodeMap.end(); itr++)
+	for (std::map<std::string, Node*>::iterator itr = nodeMap.begin(); itr != nodeMap.end(); itr++)
 	{
 		itr->second->Reset();
 	}
@@ -25,7 +25,7 @@ void AStar::ClearAll()
 
 void AStar::DestroyAll()
 {
-	for (std::map<Point2D, Node*>::iterator itr = nodeMap.begin(); itr != nodeMap.end(); itr++)
+	for (std::map<std::string, Node*>::iterator itr = nodeMap.begin(); itr != nodeMap.end(); itr++)
 	{
 		delete itr->second;
 	}
@@ -42,16 +42,16 @@ void AStar::DefineGraph(int tileCount, int tileSize)
 	Point2D addYVector(0, tileSize);
 	float lengthDiagonal = sqrt(pow(tileSize, 2) * 2);
 
-	int middleOffset = tileSize * 0.5f;
+	float middleOffset = tileSize * 0.5f;
 
 	for (int x = 0; x < tileCount; x++)
 	{
-		current.x = x * tileSize + middleOffset;
+		current.x = (x * tileSize) + middleOffset;
 		bool isRight = (x + 1) == tileCount;
 
 		for (int y = 0; y < tileCount; y++)
 		{
-			current.y = y * tileSize + middleOffset;
+			current.y = (y * tileSize) + middleOffset;
 
 			bool isBottom = (y + 1) == tileCount;
 
@@ -60,11 +60,11 @@ void AStar::DefineGraph(int tileCount, int tileSize)
 
 			if (emptyRight)
 			{
-				//AddEdge(current, current + addXVector);
+				AddEdge(current, current + addXVector);
 			}
 			if (emptyBelow)
 			{
-				//AddEdge(current, current + addYVector);
+				AddEdge(current, current + addYVector);
 			}
 		}
 	}
@@ -89,7 +89,7 @@ std::vector<Point2D> AStar::GetEdges(Point2D currentNode)
 		throw std::exception("No such element found");
 	}
 
-	Node * node = nodeMap[currentNode];
+	Node * node = nodeMap[currentNode.ToString()];
 
 	std::vector<Point2D> points;
 	for(auto obj : node->adjacent)
@@ -102,31 +102,26 @@ std::vector<Point2D> AStar::GetEdges(Point2D currentNode)
 
 std::vector<Point2D> AStar::PathFromTo(Point2D from, Point2D to)
 {
+	std::cout << "Finding path from " << from.ToString() << " to " << to.ToString() << std::endl;
+
 	ClearAll();
 
 	if (!NodeExists(from) || !NodeExists(to))
 	{
-		throw std::exception("No such elements found");
+		std::cout << "Could not find the from/to nodes, canceling A*" << std::endl;
+		return std::vector<Point2D>();
 	}
 
 	if (from == to)
 		return std::vector<Point2D>();
-
 	std::priority_queue<AStarValue> pq;
-	pq.push(AStarValue(nodeMap[from], 0, ManhattanDistance(from, to)));
+	bool test = false;
+	pq.push(AStarValue(nodeMap[from.ToString()], 0, ManhattanDistance(from, to)));
 	while (!pq.empty())
 	{
 		AStarValue aStarNode = pq.top();
 		Node * node = aStarNode.node;
 		pq.pop();
-
-		AStarValue a1(node, 10, 10);
-		AStarValue a2(node, 10, 10);
-
-		if (a1 < a2)
-		{
-			
-		}
 
 		if (node->state == NodeState::Closed)
 		{
@@ -167,6 +162,8 @@ std::vector<Point2D> AStar::PathFromTo(Point2D from, Point2D to)
 			}
 		}
 	}
+
+	std::cout << "Found path from " << from.ToString() << " to " << to.ToString() << std::endl;
 
 	return std::vector<Point2D>();
 }
