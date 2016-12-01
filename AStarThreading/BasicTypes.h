@@ -1,8 +1,11 @@
 #pragma once
+#include <vector>
 
 
 //Define some basic types needed for 2D graphics
 
+
+class Edge;
 
 class Point2D {
 public:
@@ -10,6 +13,10 @@ public:
 	Point2D(float _x = 0, float _y = 0) :x(_x), y(_y) { };
 	float length() { return (float)sqrt(x*x + y*y); };
 
+	friend Point2D operator+(const Point2D& a, const Point2D& b)
+	{
+		return Point2D(a.x + b.x, a.y + b.y);
+	};
 };
 
 
@@ -32,4 +39,37 @@ public:
 	Rect(Point2D p, Size2D s) :pos(p), size(s) {};
 	Rect(float x = 0, float y = 0, float w = 1, float h = 1) :pos(x, y), size(w, h) {};
 
+};
+
+enum NodeState { Untested, Closed, Open };
+
+class Node
+{
+public:
+	Point2D pos;
+	std::vector<Edge> adjacent;
+	float distance;
+	Node * parent;
+	NodeState state;
+
+	Node(Point2D p) : pos(p)
+	{
+		Reset();
+	}
+
+	void Reset()
+	{
+		distance = std::numeric_limits<float>::infinity();
+		parent = nullptr;
+		state = NodeState::Untested;
+	}
+};
+
+class Edge
+{
+public:
+	Node * destination;
+	float cost;
+
+	Edge(Node * n, float c) : destination(n) { }
 };
