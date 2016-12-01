@@ -97,3 +97,80 @@ std::vector<Point2D> AStar::GetEdges(Point2D currentNode)
 
 	return points;
 }
+
+std::vector<Point2D> AStar::PathFromTo(Point2D from, Point2D to)
+{
+	ClearAll();
+
+	if (!NodeExists(from) || !NodeExists(to))
+	{
+		throw std::exception("No such elements found");
+	}
+
+	if (from == to)
+		return std::vector<Point2D>();
+
+	std::priority_queue<AStarValue> pq;
+	pq.push(AStarValue(nodeMap[from], 0, ManhattanDistance(from, to)));
+
+	while (!pq.empty())
+	{
+		AStarValue aStarNode = pq.top();
+		Node * node = aStarNode.node;
+		pq.pop();
+
+		if (node->state == NodeState::Closed)
+		{
+			continue;
+		}
+		node->state = NodeState::Closed;
+
+		for(auto adj : node->adjacent)
+		{
+			if (adj.destination->pos == to)
+			{
+				adj.destination->parent = node;
+
+				return BacktrackRoute(adj.destination);
+			}
+			if (adj.destination->state == NodeState::Closed)
+			{
+				continue;
+			}
+
+			float newDistance = aStarNode.Travelled + adj.cost;
+
+			if (adj.destination->state == NodeState::Open) // Seen before but not closed yet
+			{
+				if (newDistance < adj.destination->distance)
+				{
+					adj.destination->parent = node;
+					adj.destination->distance = newDistance;
+					pq.push(AStarValue(adj.destination, newDistance, ManhattanDistance(adj.destination->pos, to)));
+				}
+			}
+			else
+			{
+				adj.destination->parent = node;
+				adj.destination->distance = newDistance;
+				adj.destination->state = NodeState::Open;
+				pq.push(AStarValue(adj.destination, newDistance, ManhattanDistance(adj.destination->pos, to)));
+			}
+		}
+	}
+
+	return std::vector<Point2D>();
+}
+
+std::vector<Point2D> AStar::BacktrackRoute(Node * end)
+{
+	std::vector<Point2D> route;
+	Node * routeNode = end;
+	while (routeNode != nullptr)
+	{
+		route.insert(route.begin(), routeNode->pos);
+		routeNode = routeNode->parent;
+	}
+
+	return route;
+}

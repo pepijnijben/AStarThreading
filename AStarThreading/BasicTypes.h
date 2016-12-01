@@ -17,6 +17,11 @@ public:
 	{
 		return Point2D(a.x + b.x, a.y + b.y);
 	};
+
+	bool operator==(const Point2D& a) const
+	{
+		return (a.x == x && a.y == y);
+	}
 };
 
 
@@ -72,4 +77,24 @@ public:
 	float cost;
 
 	Edge(Node * n, float c) : destination(n) { }
+};
+
+class AStarValue
+{
+public:
+	float Travelled;
+	float DistanceToTarget;
+	Node * node;
+
+	AStarValue(Node * n, float t, float d)
+	{
+		node = n;
+		Travelled = t;
+		DistanceToTarget = d;
+	}
+
+	bool operator<(const AStarValue& lhs, const AStarValue& rhs)
+	{ 
+		return (lhs.Travelled + lhs.DistanceToTarget) < (rhs.Travelled + rhs.DistanceToTarget);
+	}
 };
