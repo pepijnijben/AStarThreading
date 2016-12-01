@@ -40,7 +40,6 @@ void AStar::DefineGraph(int tileCount, int tileSize)
 	Point2D current;
 	Point2D addXVector(tileSize, 0);
 	Point2D addYVector(0, tileSize);
-	float lengthDiagonal = sqrt(pow(tileSize, 2) * 2);
 
 	float middleOffset = tileSize * 0.5f;
 

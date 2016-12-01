@@ -11,7 +11,8 @@ const int SCREEN_FPS = 60;
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 
 int Game::TileSize = 20;
-int Game::TileCount = 20;
+int Game::TileCount = 40;
+Point2D Game::m_camPos = Point2D(0,0);
 
 Game::Game()
 {
@@ -24,7 +25,7 @@ Game::~Game()
 }
 
 bool Game::init() {	
-	Size2D winSize(800,600);
+	Size2D winSize(800, 600);
 
 	//creates our renderer, which looks after drawing and the window
 	renderer.init(winSize,"AStarThreading");
@@ -44,12 +45,16 @@ bool Game::init() {
 	//want game loop to pause
 	inputManager.AddListener(EventListener::Event::PAUSE, this);
 	inputManager.AddListener(EventListener::Event::QUIT, this);
+	inputManager.AddListener(EventListener::Event::RIGHTARROW, this);
+	inputManager.AddListener(EventListener::Event::LEFTARROW, this);
+	inputManager.AddListener(EventListener::Event::UPARROW, this);
+	inputManager.AddListener(EventListener::Event::DOWNARROW, this);
 
 	for (int x = 0; x < TileCount; x ++)
 	{
 		for (int y = 0; y < TileCount; y++)
 		{
-			gameObjects.push_back(new Tile(x * TileSize + 10, y * TileSize + 10, TileSize, Colour(0, 255, 0)));
+			gameObjects.push_back(new Tile(x * TileSize, y * TileSize, TileSize, Colour(0, 255, 0)));
 		}
 	}
 
@@ -60,7 +65,7 @@ bool Game::init() {
 
 	for(Point2D point : path)
 	{
-		gameObjects.push_back(new Tile(point.x, point.y, 20, Colour(0, 0, 255)));
+		gameObjects.push_back(new Tile(point.x - (TileSize * 0.5f), point.y - (TileSize * 0.5f), 20, Colour(0, 0, 255)));
 	}
 
 	return true;
@@ -102,8 +107,6 @@ void Game::render()
 	}
 
 	renderer.present();// display the new frame (swap buffers)
-
-	
 }
 
 /** update and render game entities*/
@@ -140,4 +143,20 @@ void Game::onEvent(EventListener::Event evt) {
 		quit=true;
 	}
 
+	if (evt == EventListener::Event::RIGHTARROW)
+	{
+		m_camPos.x -= 5.0f;
+	}
+	if (evt == EventListener::Event::LEFTARROW)
+	{
+		m_camPos.x += 5.0f;
+	}
+	if (evt == EventListener::Event::UPARROW)
+	{
+		m_camPos.y += 5.0f;
+	}
+	if (evt == EventListener::Event::DOWNARROW)
+	{
+		m_camPos.y -= 5.0f;
+	}
 }

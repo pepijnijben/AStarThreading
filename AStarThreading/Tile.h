@@ -22,6 +22,5 @@ public:
 	};
 	void Update(unsigned int deltaTime) override 
 	{
-
 	};
 };

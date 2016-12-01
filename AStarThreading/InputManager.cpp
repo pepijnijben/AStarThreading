@@ -46,16 +46,23 @@ void InputManager::ProcessInput()
 			/* Keyboard event */
 			case SDL_KEYDOWN:
 				switch (e.key.keysym.sym) {
-				case SDLK_SPACE:
-					Dispatch(EventListener::Event::PAUSE);
-					break;
-				case SDLK_r:
-					Dispatch(EventListener::Event::REVERSE);
-					break;
-
+					case SDLK_SPACE:
+						Dispatch(EventListener::Event::PAUSE);
+						break;
+					case SDLK_RIGHT:
+						Dispatch(EventListener::Event::RIGHTARROW);
+						break;
+					case SDLK_LEFT:
+						Dispatch(EventListener::Event::LEFTARROW);
+						break;
+					case SDLK_UP:
+						Dispatch(EventListener::Event::UPARROW);
+						break;
+					case SDLK_DOWN:
+						Dispatch(EventListener::Event::DOWNARROW);
+						break;
 				}
 				break;
-
 			
 			/* SDL_QUIT event (window close) */
 			case SDL_QUIT:
@@ -65,8 +72,6 @@ void InputManager::ProcessInput()
 			default:
 				break;
 			}
-		
-		
 	
 	}
 	//check for exit

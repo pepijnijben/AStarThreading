@@ -10,6 +10,7 @@ using namespace std;
 #endif
 
 #include "Renderer.h"
+#include "Game.h"
 
 
 
@@ -64,6 +65,10 @@ void Renderer::drawRect(const Rect& r, const Colour& c) {
 	sr.w = (int)r.size.w;
 	sr.x = (int)r.pos.x;
 	sr.y = (int)r.pos.y;
+
+	sr.x += Game::m_camPos.x;
+	sr.y += Game::m_camPos.y;
+
 	SDL_RenderFillRect(sdl_renderer, &sr);
 	SDL_SetRenderDrawColor(sdl_renderer, 255, 255, 255, 255);
 	SDL_RenderDrawRect(sdl_renderer, &sr);

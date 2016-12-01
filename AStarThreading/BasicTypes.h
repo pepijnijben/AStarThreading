@@ -24,6 +24,11 @@ public:
 	{
 		return Point2D(a.x + b.x, a.y + b.y);
 	};
+	friend Point2D operator-(const Point2D& a, const Point2D& b)
+	{
+		return Point2D(a.x - b.x, a.y - b.y);
+	};
+
 
 	bool operator==(const Point2D& a) const
 	{

@@ -8,14 +8,12 @@
 /*Base class for all in game objects*/
 class GameObject
 {
-
+protected:
 public:
 	GameObject() {};
 	virtual ~GameObject() {};
 
 	virtual void Render(Renderer& r)=0;
 	virtual void Update(unsigned int deltaTime)=0;
-
-
 };
 

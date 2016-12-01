@@ -20,6 +20,7 @@ class Game:public EventListener
 	bool pause;
 	bool quit;
 
+
 public:
 	Game();
 	~Game();
@@ -33,6 +34,7 @@ public:
 
 	void onEvent(EventListener::Event);
 
+	static Point2D m_camPos;
 	static int TileSize;
 	static int TileCount;
 };
