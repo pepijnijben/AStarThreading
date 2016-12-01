@@ -22,6 +22,14 @@ public:
 	{
 		return (a.x == x && a.y == y);
 	}
+
+	bool operator<(const Point2D& lhs) const
+	{ 
+		float l1 = (float)sqrt(x*x + y*y);
+		float l2 = (float)sqrt(lhs.x*lhs.x + lhs.y*lhs.y);
+
+		return l1 < l2;
+	}
 };
 
 
@@ -93,8 +101,8 @@ public:
 		DistanceToTarget = d;
 	}
 
-	bool operator<(const AStarValue& lhs, const AStarValue& rhs)
+	bool operator<(const AStarValue& lhs) const
 	{ 
-		return (lhs.Travelled + lhs.DistanceToTarget) < (rhs.Travelled + rhs.DistanceToTarget);
+		return (lhs.Travelled + lhs.DistanceToTarget) < (Travelled + DistanceToTarget);
 	}
 };

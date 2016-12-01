@@ -14,6 +14,9 @@ private:
 	std::vector<Point2D> BacktrackRoute(Node * end);
 	float ManhattanDistance(Point2D from, Point2D to) { return abs(from.x - to.x) + abs(from.y - to.y); };
 public:
+	AStar() {};
+	~AStar() { DestroyAll(); };
+
 	void DefineGraph(int tileCount, int tileSize);
 	void AddEdge(Point2D from, Point2D to, float cost = 1.0f, bool omniDirection = true);
 	std::vector<Point2D> GetEdges(Point2D currentNode);

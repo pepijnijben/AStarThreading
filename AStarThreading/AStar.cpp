@@ -35,6 +35,8 @@ void AStar::DestroyAll()
 
 void AStar::DefineGraph(int tileCount, int tileSize)
 {
+	DestroyAll();
+
 	Point2D current;
 	Point2D addXVector(tileSize, 0);
 	Point2D addYVector(0, tileSize);
@@ -58,11 +60,11 @@ void AStar::DefineGraph(int tileCount, int tileSize)
 
 			if (emptyRight)
 			{
-				AddEdge(current, current + addXVector);
+				//AddEdge(current, current + addXVector);
 			}
 			if (emptyBelow)
 			{
-				AddEdge(current, current + addYVector);
+				//AddEdge(current, current + addYVector);
 			}
 		}
 	}
@@ -112,12 +114,19 @@ std::vector<Point2D> AStar::PathFromTo(Point2D from, Point2D to)
 
 	std::priority_queue<AStarValue> pq;
 	pq.push(AStarValue(nodeMap[from], 0, ManhattanDistance(from, to)));
-
 	while (!pq.empty())
 	{
 		AStarValue aStarNode = pq.top();
 		Node * node = aStarNode.node;
 		pq.pop();
+
+		AStarValue a1(node, 10, 10);
+		AStarValue a2(node, 10, 10);
+
+		if (a1 < a2)
+		{
+			
+		}
 
 		if (node->state == NodeState::Closed)
 		{
