@@ -11,7 +11,7 @@ const int SCREEN_FPS = 60;
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 
 int Game::TileSize = 20;
-int Game::TileCount = 40;
+int Game::TileCount = 30;
 Point2D Game::m_camPos = Point2D(0,0);
 
 Game::Game()
@@ -50,10 +50,32 @@ bool Game::init() {
 	inputManager.AddListener(EventListener::Event::UPARROW, this);
 	inputManager.AddListener(EventListener::Event::DOWNARROW, this);
 
+	int numberOfWalls = 3;
+	int wallEvery = TileCount / numberOfWalls;
+	int wallAtX = (TileCount / numberOfWalls) * 0.5f;
+	int currentWallCounter = 0;
+
 	for (int x = 0; x < TileCount; x ++)
 	{
+		if (x % wallEvery == wallAtX)
+		{
+			currentWallCounter++;
+		}
 		for (int y = 0; y < TileCount; y++)
 		{
+			if (x % wallEvery == wallAtX)
+			{
+				if (x % wallEvery == wallAtX)
+				{
+					if ((currentWallCounter % 2 == 0 && y != 0)
+						|| (currentWallCounter % 2 == 1) && y != TileCount - 1)
+					{
+						gameObjects.push_back(new Tile(x * TileSize, y * TileSize, TileSize, Colour(255, 0, 0)));
+						continue;
+					}
+				}
+			}
+
 			gameObjects.push_back(new Tile(x * TileSize, y * TileSize, TileSize, Colour(0, 255, 0)));
 		}
 	}
@@ -61,7 +83,7 @@ bool Game::init() {
 	AStar aStar;
 	aStar.DefineGraph(TileCount, TileSize);
 
-	vector<Point2D> path = aStar.PathFromTo(0, 0, 15, 15);
+	vector<Point2D> path = aStar.PathFromTo(0, 0, 29, 29);
 
 	for(Point2D point : path)
 	{
@@ -145,18 +167,18 @@ void Game::onEvent(EventListener::Event evt) {
 
 	if (evt == EventListener::Event::RIGHTARROW)
 	{
-		m_camPos.x -= 5.0f;
+		m_camPos.x -= 15.0f;
 	}
 	if (evt == EventListener::Event::LEFTARROW)
 	{
-		m_camPos.x += 5.0f;
+		m_camPos.x += 15.0f;
 	}
 	if (evt == EventListener::Event::UPARROW)
 	{
-		m_camPos.y += 5.0f;
+		m_camPos.y += 15.0f;
 	}
 	if (evt == EventListener::Event::DOWNARROW)
 	{
-		m_camPos.y -= 5.0f;
+		m_camPos.y -= 15.0f;
 	}
 }

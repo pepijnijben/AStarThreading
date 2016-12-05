@@ -43,13 +43,31 @@ void AStar::DefineGraph(int tileCount, int tileSize)
 
 	float middleOffset = tileSize * 0.5f;
 
+	int numberOfWalls = 3;
+	int wallEvery = tileCount / numberOfWalls;
+	int wallAtX = (tileCount / numberOfWalls) * 0.5f;
+	int currentWallCounter = 0;
+
 	for (int x = 0; x < tileCount; x++)
 	{
+		if (x % wallEvery == wallAtX)
+		{
+			currentWallCounter++;
+		}
 		current.x = (x * tileSize) + middleOffset;
 		bool isRight = (x + 1) == tileCount;
 
 		for (int y = 0; y < tileCount; y++)
 		{
+			if (x % wallEvery == wallAtX)
+			{
+				if ((currentWallCounter % 2 == 0 && y != 0)
+					|| (currentWallCounter % 2 == 1 && y != tileCount - 1))
+				{
+					continue;
+				}
+			}
+
 			current.y = (y * tileSize) + middleOffset;
 
 			bool isBottom = (y + 1) == tileCount;
