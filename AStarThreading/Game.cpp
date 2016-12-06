@@ -50,9 +50,10 @@ bool Game::init() {
 	inputManager.AddListener(EventListener::Event::UPARROW, this);
 	inputManager.AddListener(EventListener::Event::DOWNARROW, this);
 
-	int numberOfWalls = 3;
-	int wallEvery = TileCount / numberOfWalls;
-	int wallAtX = (TileCount / numberOfWalls) * 0.5f;
+	TileCount = tileCount[currentSimulation];
+
+	int wallEvery = TileCount / numberOfWalls[currentSimulation];
+	int wallAtX = (TileCount / numberOfWalls[currentSimulation]) * 0.5f;
 	int currentWallCounter = 0;
 
 	for (int x = 0; x < TileCount; x ++)
@@ -81,9 +82,9 @@ bool Game::init() {
 	}
 
 	AStar aStar;
-	aStar.DefineGraph(TileCount, TileSize);
+	aStar.DefineGraph(TileCount, TileSize, numberOfWalls[currentSimulation]);
 
-	vector<Point2D> path = aStar.PathFromTo(0, 0, 29, 29);
+	vector<Point2D> path = aStar.PathFromTo(0, 0, 16, 15);
 
 	for(Point2D point : path)
 	{

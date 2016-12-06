@@ -33,7 +33,7 @@ void AStar::DestroyAll()
 	nodeMap.clear();
 }
 
-void AStar::DefineGraph(int tileCount, int tileSize)
+void AStar::DefineGraph(int tileCount, int tileSize, int numberOfWalls)
 {
 	DestroyAll();
 
@@ -43,7 +43,6 @@ void AStar::DefineGraph(int tileCount, int tileSize)
 
 	float middleOffset = tileSize * 0.5f;
 
-	int numberOfWalls = 3;
 	int wallEvery = tileCount / numberOfWalls;
 	int wallAtX = (tileCount / numberOfWalls) * 0.5f;
 	int currentWallCounter = 0;
@@ -72,8 +71,9 @@ void AStar::DefineGraph(int tileCount, int tileSize)
 
 			bool isBottom = (y + 1) == tileCount;
 
-			bool emptyRight = !isRight;
-			bool emptyBelow = !isBottom;
+			bool emptyRight = !isRight && !(((x + 1) % wallEvery == wallAtX) 
+				&& ((currentWallCounter % 2 == 0 && y != tileCount - 1) || (currentWallCounter % 2 == 1 && y != 0)));
+			bool emptyBelow = !isBottom && !(currentWallCounter % 2 == 0 && y == 0 && x % wallEvery == wallAtX);
 
 			if (emptyRight)
 			{
@@ -103,7 +103,8 @@ std::vector<Point2D> AStar::GetEdges(Point2D currentNode)
 {
 	if (!NodeExists(currentNode))
 	{
-		throw std::exception("No such element found");
+		std::cout << "Could not find this element" << std::endl;
+		return std::vector<Point2D>();
 	}
 
 	Node * node = nodeMap[currentNode.ToString()];

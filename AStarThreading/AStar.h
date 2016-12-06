@@ -18,7 +18,7 @@ public:
 	AStar() {};
 	~AStar() { DestroyAll(); };
 
-	void DefineGraph(int tileCount, int tileSize);
+	void DefineGraph(int tileCount, int tileSize, int numberOffWalls);
 	void AddEdge(Point2D from, Point2D to, float cost = 1.0f, bool omniDirection = true);
 	std::vector<Point2D> GetEdges(Point2D currentNode);
 	bool NodeExists(Point2D node) { return nodeMap.find(node.ToString()) != nodeMap.end(); };
