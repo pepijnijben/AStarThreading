@@ -6,12 +6,14 @@
 #include "GameObject.h"
 #include "InputManager.h"
 #include "EventListener.h"
+#include "ThreadPool.h"
 
 /** The game objct whic manages the game loop*/
 class Game:public EventListener
 {
 	InputManager inputManager;
 	Renderer renderer;
+	ThreadPool threadPool;
 
 	std::vector<GameObject*> gameObjects;
 
