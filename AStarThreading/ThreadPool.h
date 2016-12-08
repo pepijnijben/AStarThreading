@@ -93,7 +93,6 @@ public:
 	static int RunTask(void *ptr)
 	{
 		ThreadQueue * queue = (ThreadQueue*)ptr;
-
 		while (!queue->IsFinished() || queue->hasWork())
 		{
 			queue->DoNextJob();

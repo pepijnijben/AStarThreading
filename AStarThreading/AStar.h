@@ -6,7 +6,10 @@
 class AStar
 {
 private:
+	std::map<int, std::map<std::string, Node*>> nodeMaps;
+
 	Node* GetNode(std::map<std::string, Node*> * map, Point2D pos, bool create = false);
+	void ClearAll(int thread_id);
 	void DestroyAll(std::map<std::string, Node*> * map);
 
 	std::vector<Point2D> BacktrackRoute(Node * end);

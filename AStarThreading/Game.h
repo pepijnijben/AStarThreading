@@ -27,7 +27,7 @@ class Game:public EventListener
 	int currentSimulation = 0;
 	const int tileCount[3] = { 30, 100, 1000 };
 	const int numberOfWalls[3] = { 3, 6, 12 };
-	const int enemyCount[3] = { 5, 50, 500 };
+	const int enemyCount[3] = { 50, 50, 500 };
 
 public:
 	Game();

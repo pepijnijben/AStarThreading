@@ -1,21 +1,6 @@
 #include "AStar.h"
 #include "Game.h"
 
-//Node* AStar::GetNode(Point2D pos, bool create)
-//{
-//	if (nodeMap.find(pos.ToString()) != nodeMap.end())
-//	{
-//		return nodeMap[pos.ToString()];
-//	}
-//	if (!create)
-//		throw std::exception("No such element found");
-//
-//	Node* node = new Node(pos);
-//	nodeMap[pos.ToString()] = node;
-//
-//	return node;
-//}
-
 Node * AStar::GetNode(std::map<std::string, Node*> * map, Point2D pos, bool create)
 {
 	if (map->find(pos.ToString()) != map->end())
@@ -29,6 +14,15 @@ Node * AStar::GetNode(std::map<std::string, Node*> * map, Point2D pos, bool crea
 	(*map)[pos.ToString()] = node;
 
 	return node;
+}
+
+void AStar::ClearAll(int thread_id)
+{
+	std::map<std::string, Node*> nodeMap = nodeMaps[thread_id];
+	for (std::map<std::string, Node*>::iterator itr = nodeMap.begin(); itr != nodeMap.end(); itr++)
+	{
+		itr->second->Reset();
+	}
 }
 
 void AStar::DestroyAll(std::map<std::string, Node*> * map)
@@ -131,7 +125,19 @@ std::vector<Point2D> AStar::GetEdges(std::map<std::string, Node*> * map, Point2D
 
 std::vector<Point2D> AStar::PathFromTo(Point2D from, Point2D to)
 {
-	std::map<std::string, Node*> nodeMap = DefineGraph();
+	std::map<std::string, Node*> nodeMap;
+	int thread_id = SDL_ThreadID();
+
+	if (nodeMaps.find(thread_id) != nodeMaps.end())
+	{
+		ClearAll(thread_id);
+		nodeMap = nodeMaps[thread_id];
+	}
+	else
+	{
+		nodeMap = DefineGraph();
+		nodeMaps[thread_id] = nodeMap;
+	}
 
 	if (!NodeExists(&nodeMap, from) || !NodeExists(&nodeMap, to))
 	{
@@ -189,8 +195,6 @@ std::vector<Point2D> AStar::PathFromTo(Point2D from, Point2D to)
 			}
 		}
 	}
-
-	//std::cout << "Found path from " << from.ToString() << " to " << to.ToString() << std::endl;
 
 	return std::vector<Point2D>();
 }
