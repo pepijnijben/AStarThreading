@@ -1,8 +1,7 @@
 #pragma once
-#include "BasicTypes.h"
 #include <map>
 #include <queue>
-#include "Game.h"
+#include "BasicTypes.h"
 
 class AStar
 {
@@ -23,9 +22,5 @@ public:
 	std::vector<Point2D> GetEdges(Point2D currentNode);
 	bool NodeExists(Point2D node) { return nodeMap.find(node.ToString()) != nodeMap.end(); };
 	std::vector<Point2D> PathFromTo(Point2D from, Point2D to);
-	std::vector<Point2D> PathFromTo(int fx, int fy, int tx, int ty)
-	{
-		float offset = Game::TileSize / 2;
-		return PathFromTo(Point2D(fx * Game::TileSize + offset, fy * Game::TileSize + offset), Point2D(tx * Game::TileSize + offset, ty * Game::TileSize + offset));
-	};
+	std::vector<Point2D> PathFromTo(int fx, int fy, int tx, int ty);
 };

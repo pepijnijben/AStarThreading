@@ -1,4 +1,5 @@
 #include "AStar.h"
+#include "Game.h"
 
 Node* AStar::GetNode(Point2D pos, bool create)
 {
@@ -184,6 +185,12 @@ std::vector<Point2D> AStar::PathFromTo(Point2D from, Point2D to)
 	std::cout << "Found path from " << from.ToString() << " to " << to.ToString() << std::endl;
 
 	return std::vector<Point2D>();
+}
+
+std::vector<Point2D> AStar::PathFromTo(int fx, int fy, int tx, int ty)
+{
+	float offset = Game::TileSize / 2;
+	return PathFromTo(Point2D(fx * Game::TileSize + offset, fy * Game::TileSize + offset), Point2D(tx * Game::TileSize + offset, ty * Game::TileSize + offset));
 }
 
 std::vector<Point2D> AStar::BacktrackRoute(Node * end)

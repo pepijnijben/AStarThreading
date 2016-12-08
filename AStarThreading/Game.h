@@ -1,12 +1,11 @@
 #pragma once
-
 #include <vector>
-
 #include "Renderer.h"
 #include "GameObject.h"
 #include "InputManager.h"
 #include "EventListener.h"
 #include "ThreadPool.h"
+#include "AStar.h"
 
 /** The game objct whic manages the game loop*/
 class Game:public EventListener
@@ -16,6 +15,7 @@ class Game:public EventListener
 	ThreadPool threadPool;
 
 	std::vector<GameObject*> gameObjects;
+	AStar aStar;
 
 	unsigned int lastTime;//time of last update;
 
@@ -31,6 +31,7 @@ public:
 	Game();
 	~Game();
 
+	void GetPath(Point2D from, Point2D to);
 	bool init();
 	void destroy();
 

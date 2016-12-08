@@ -1,11 +1,10 @@
 #include "stdafx.h"
 #include <iostream>
-using namespace std;
-
 #include "LTimer.h"
 #include "Game.h"
-#include "AStar.h"
 #include "Tile.h"
+
+using namespace std;
 
 const int SCREEN_FPS = 60;
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
@@ -24,7 +23,18 @@ Game::~Game()
 {
 }
 
-bool Game::init() {	
+
+void Game::GetPath(Point2D from, Point2D to)
+{
+	vector<Point2D> path = aStar.PathFromTo(from.x, from.y, to.x, to.y);
+
+	for (Point2D point : path)
+	{
+		gameObjects.push_back(new Tile(point.x - (TileSize * 0.5f), point.y - (TileSize * 0.5f), 20, Colour(0, 0, 255)));
+	}
+}
+
+bool Game::init() {
 	Size2D winSize(800, 600);
 
 	//creates our renderer, which looks after drawing and the window
@@ -81,15 +91,9 @@ bool Game::init() {
 		}
 	}
 
-	AStar aStar;
 	aStar.DefineGraph(TileCount, TileSize, numberOfWalls[currentSimulation]);
-
-	vector<Point2D> path = aStar.PathFromTo(0, 0, 16, 15);
-
-	for(Point2D point : path)
-	{
-		gameObjects.push_back(new Tile(point.x - (TileSize * 0.5f), point.y - (TileSize * 0.5f), 20, Colour(0, 0, 255)));
-	}
+	threadPool.AddJob(bind(&Game::GetPath, this, Point2D(0, 0), Point2D(16, 15)));
+	threadPool.AddJob(bind(&Game::GetPath, this, Point2D(29, 29), Point2D(18, 15)));
 
 	return true;
 }
