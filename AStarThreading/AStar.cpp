@@ -88,7 +88,6 @@ std::map<std::string, Node*> AStar::DefineGraph()
 			}
 		}
 	}
-
 	return nodeMap;
 }
 
@@ -167,7 +166,6 @@ std::vector<Point2D> AStar::PathFromTo(Point2D from, Point2D to)
 			if (adj.destination->pos == to)
 			{
 				adj.destination->parent = node;
-
 				return BacktrackRoute(adj.destination);
 			}
 			if (adj.destination->state == NodeState::Closed)

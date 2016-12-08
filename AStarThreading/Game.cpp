@@ -28,11 +28,6 @@ Game::~Game()
 void Game::GetPath(Enemy * e, Point2D from, Point2D to)
 {
 	vector<Point2D> path = aStar.PathFromTo(from.x, from.y, to.x, to.y);
-
-	/*for (Point2D point : path)
-	{
-		gameObjects.push_back(new Tile(point.x - (TileSize * 0.5f), point.y - (TileSize * 0.5f), 20, Colour(0, 0, 255)));
-	}*/
 	e->SetPath(path);
 }
 
@@ -62,6 +57,7 @@ bool Game::init() {
 	inputManager.AddListener(EventListener::Event::UPARROW, this);
 	inputManager.AddListener(EventListener::Event::DOWNARROW, this);
 
+	// Generate map
 	TileCount = tileCount[currentSimulation];
 	WallCount = numberOfWalls[currentSimulation];
 
@@ -93,7 +89,12 @@ bool Game::init() {
 			gameObjects.push_back(new Tile(x * TileSize, y * TileSize, TileSize, Colour(0, 255, 0)));
 		}
 	}
+	// End generate map
 
+	// Generate waypoints
+
+
+	// Generate enemies
 	for (int i = 0; i < enemyCount[currentSimulation]; i++)
 	{
 		float x = ((TileCount - 4) + i % 4);
@@ -102,6 +103,7 @@ bool Game::init() {
 		m_enemies.push_back(e);
 		threadPool.AddJob(bind(&Game::GetPath, this, e, Point2D(x, y), Point2D()));
 	}
+	// End generate enemies
 
 	return true;
 }
