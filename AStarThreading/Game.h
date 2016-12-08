@@ -6,6 +6,7 @@
 #include "EventListener.h"
 #include "ThreadPool.h"
 #include "AStar.h"
+#include "Enemy.h"
 
 /** The game objct whic manages the game loop*/
 class Game:public EventListener
@@ -15,6 +16,7 @@ class Game:public EventListener
 	ThreadPool threadPool;
 
 	std::vector<GameObject*> gameObjects;
+	std::vector<Enemy*> m_enemies;
 	AStar aStar;
 
 	unsigned int lastTime;//time of last update;
@@ -31,7 +33,7 @@ public:
 	Game();
 	~Game();
 
-	void GetPath(Point2D from, Point2D to);
+	void GetPath(Enemy * e, Point2D from, Point2D to);
 	bool init();
 	void destroy();
 
@@ -44,5 +46,6 @@ public:
 	static Point2D m_camPos;
 	static int TileSize;
 	static int TileCount;
+	static int WallCount;
 };
 

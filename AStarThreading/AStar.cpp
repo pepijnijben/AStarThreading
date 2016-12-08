@@ -1,98 +1,108 @@
 #include "AStar.h"
 #include "Game.h"
 
-Node* AStar::GetNode(Point2D pos, bool create)
+//Node* AStar::GetNode(Point2D pos, bool create)
+//{
+//	if (nodeMap.find(pos.ToString()) != nodeMap.end())
+//	{
+//		return nodeMap[pos.ToString()];
+//	}
+//	if (!create)
+//		throw std::exception("No such element found");
+//
+//	Node* node = new Node(pos);
+//	nodeMap[pos.ToString()] = node;
+//
+//	return node;
+//}
+
+Node * AStar::GetNode(std::map<std::string, Node*> * map, Point2D pos, bool create)
 {
-	if (nodeMap.find(pos.ToString()) != nodeMap.end())
+	if (map->find(pos.ToString()) != map->end())
 	{
-		return nodeMap[pos.ToString()];
+		return (*map)[pos.ToString()];
 	}
 	if (!create)
 		throw std::exception("No such element found");
 
 	Node* node = new Node(pos);
-	nodeMap[pos.ToString()] = node;
+	(*map)[pos.ToString()] = node;
 
 	return node;
 }
 
-void AStar::ClearAll()
+void AStar::DestroyAll(std::map<std::string, Node*> * map)
 {
-	for (std::map<std::string, Node*>::iterator itr = nodeMap.begin(); itr != nodeMap.end(); itr++)
-	{
-		itr->second->Reset();
-	}
-}
-
-void AStar::DestroyAll()
-{
-	for (std::map<std::string, Node*>::iterator itr = nodeMap.begin(); itr != nodeMap.end(); itr++)
+	for (std::map<std::string, Node*>::iterator itr = map->begin(); itr != map->end(); itr++)
 	{
 		delete itr->second;
 	}
 
-	nodeMap.clear();
+	map->clear();
 }
 
-void AStar::DefineGraph(int tileCount, int tileSize, int numberOfWalls)
+std::map<std::string, Node*> AStar::DefineGraph()
 {
-	DestroyAll();
+	std::map<std::string, Node*> nodeMap;
 
 	Point2D current;
-	Point2D addXVector(tileSize, 0);
-	Point2D addYVector(0, tileSize);
+	Point2D addXVector(Game::TileSize, 0);
+	Point2D addYVector(0, Game::TileSize);
 
-	float middleOffset = tileSize * 0.5f;
+	float middleOffset = 0;
+	//float middleOffset = tileSize * 0.5f;
 
-	int wallEvery = tileCount / numberOfWalls;
-	int wallAtX = (tileCount / numberOfWalls) * 0.5f;
+	int wallEvery = Game::TileCount / Game::WallCount;
+	int wallAtX = (Game::TileCount / Game::WallCount) * 0.5f;
 	int currentWallCounter = 0;
 
-	for (int x = 0; x < tileCount; x++)
+	for (int x = 0; x < Game::TileCount; x++)
 	{
 		if (x % wallEvery == wallAtX)
 		{
 			currentWallCounter++;
 		}
-		current.x = (x * tileSize) + middleOffset;
-		bool isRight = (x + 1) == tileCount;
+		current.x = (x * Game::TileSize) + middleOffset;
+		bool isRight = (x + 1) == Game::TileCount;
 
-		for (int y = 0; y < tileCount; y++)
+		for (int y = 0; y < Game::TileCount; y++)
 		{
 			if (x % wallEvery == wallAtX)
 			{
 				if ((currentWallCounter % 2 == 0 && y != 0)
-					|| (currentWallCounter % 2 == 1 && y != tileCount - 1))
+					|| (currentWallCounter % 2 == 1 && y != Game::TileCount - 1))
 				{
 					continue;
 				}
 			}
 
-			current.y = (y * tileSize) + middleOffset;
+			current.y = (y * Game::TileSize) + middleOffset;
 
-			bool isBottom = (y + 1) == tileCount;
+			bool isBottom = (y + 1) == Game::TileCount;
 
-			bool emptyRight = !isRight && !(((x + 1) % wallEvery == wallAtX) 
-				&& ((currentWallCounter % 2 == 0 && y != tileCount - 1) || (currentWallCounter % 2 == 1 && y != 0)));
+			bool emptyRight = !isRight && !(((x + 1) % wallEvery == wallAtX)
+				&& ((currentWallCounter % 2 == 0 && y != Game::TileCount - 1) || (currentWallCounter % 2 == 1 && y != 0)));
 			bool emptyBelow = !isBottom && !(currentWallCounter % 2 == 0 && y == 0 && x % wallEvery == wallAtX);
 
 			if (emptyRight)
 			{
-				AddEdge(current, current + addXVector);
+				AddEdge(&nodeMap, current, current + addXVector);
 			}
 			if (emptyBelow)
 			{
-				AddEdge(current, current + addYVector);
+				AddEdge(&nodeMap, current, current + addYVector);
 			}
 		}
 	}
+
+	return nodeMap;
 }
 
-void AStar::AddEdge(Point2D from, Point2D to, float cost, bool omniDirection)
+void AStar::AddEdge(std::map<std::string, Node*> * map, Point2D from, Point2D to, float cost, bool omniDirection)
 {
-	Node * v = GetNode(from, true);
-	Node * w = GetNode(to, true);
-
+	Node * v = GetNode(map, from, true);
+	Node * w = GetNode(map, to, true);
+	
 	v->adjacent.push_back(Edge(w, cost));
 	if (omniDirection)
 	{
@@ -100,15 +110,15 @@ void AStar::AddEdge(Point2D from, Point2D to, float cost, bool omniDirection)
 	}
 }
 
-std::vector<Point2D> AStar::GetEdges(Point2D currentNode)
+std::vector<Point2D> AStar::GetEdges(std::map<std::string, Node*> * map, Point2D currentNode)
 {
-	if (!NodeExists(currentNode))
+	if (!NodeExists(map, currentNode))
 	{
 		std::cout << "Could not find this element" << std::endl;
 		return std::vector<Point2D>();
 	}
 
-	Node * node = nodeMap[currentNode.ToString()];
+	Node * node = (*map)[currentNode.ToString()];
 
 	std::vector<Point2D> points;
 	for(auto obj : node->adjacent)
@@ -121,11 +131,9 @@ std::vector<Point2D> AStar::GetEdges(Point2D currentNode)
 
 std::vector<Point2D> AStar::PathFromTo(Point2D from, Point2D to)
 {
-	std::cout << "Finding path from " << from.ToString() << " to " << to.ToString() << std::endl;
+	std::map<std::string, Node*> nodeMap = DefineGraph();
 
-	ClearAll();
-
-	if (!NodeExists(from) || !NodeExists(to))
+	if (!NodeExists(&nodeMap, from) || !NodeExists(&nodeMap, to))
 	{
 		std::cout << "Could not find the from/to nodes, canceling A*" << std::endl;
 		return std::vector<Point2D>();
@@ -182,14 +190,15 @@ std::vector<Point2D> AStar::PathFromTo(Point2D from, Point2D to)
 		}
 	}
 
-	std::cout << "Found path from " << from.ToString() << " to " << to.ToString() << std::endl;
+	//std::cout << "Found path from " << from.ToString() << " to " << to.ToString() << std::endl;
 
 	return std::vector<Point2D>();
 }
 
 std::vector<Point2D> AStar::PathFromTo(int fx, int fy, int tx, int ty)
 {
-	float offset = Game::TileSize / 2;
+	float offset = 0;
+	//float offset = Game::TileSize / 2;
 	return PathFromTo(Point2D(fx * Game::TileSize + offset, fy * Game::TileSize + offset), Point2D(tx * Game::TileSize + offset, ty * Game::TileSize + offset));
 }
 

@@ -11,6 +11,7 @@ const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 
 int Game::TileSize = 20;
 int Game::TileCount = 30;
+int Game::WallCount = 3;
 Point2D Game::m_camPos = Point2D(0,0);
 
 Game::Game()
@@ -24,14 +25,15 @@ Game::~Game()
 }
 
 
-void Game::GetPath(Point2D from, Point2D to)
+void Game::GetPath(Enemy * e, Point2D from, Point2D to)
 {
 	vector<Point2D> path = aStar.PathFromTo(from.x, from.y, to.x, to.y);
 
-	for (Point2D point : path)
+	/*for (Point2D point : path)
 	{
 		gameObjects.push_back(new Tile(point.x - (TileSize * 0.5f), point.y - (TileSize * 0.5f), 20, Colour(0, 0, 255)));
-	}
+	}*/
+	e->SetPath(path);
 }
 
 bool Game::init() {
@@ -61,9 +63,10 @@ bool Game::init() {
 	inputManager.AddListener(EventListener::Event::DOWNARROW, this);
 
 	TileCount = tileCount[currentSimulation];
+	WallCount = numberOfWalls[currentSimulation];
 
-	int wallEvery = TileCount / numberOfWalls[currentSimulation];
-	int wallAtX = (TileCount / numberOfWalls[currentSimulation]) * 0.5f;
+	int wallEvery = TileCount / WallCount;
+	int wallAtX = (TileCount / WallCount) * 0.5f;
 	int currentWallCounter = 0;
 
 	for (int x = 0; x < TileCount; x ++)
@@ -91,9 +94,14 @@ bool Game::init() {
 		}
 	}
 
-	aStar.DefineGraph(TileCount, TileSize, numberOfWalls[currentSimulation]);
-	threadPool.AddJob(bind(&Game::GetPath, this, Point2D(0, 0), Point2D(16, 15)));
-	threadPool.AddJob(bind(&Game::GetPath, this, Point2D(29, 29), Point2D(18, 15)));
+	for (int i = 0; i < enemyCount[currentSimulation]; i++)
+	{
+		float x = ((TileCount - 4) + i % 4);
+		float y = (0 + (i / 4));
+		Enemy * e = new Enemy(x * TileSize, y * TileSize, TileSize);
+		m_enemies.push_back(e);
+		threadPool.AddJob(bind(&Game::GetPath, this, e, Point2D(x, y), Point2D()));
+	}
 
 	return true;
 }
@@ -104,7 +112,11 @@ void Game::destroy()
 	for (std::vector<GameObject*>::iterator i = gameObjects.begin(); i != gameObjects.end(); i++) {
 		delete *i;
 	}
+	for (std::vector<Enemy*>::iterator i = m_enemies.begin(); i != m_enemies.end(); i++) {
+		delete *i;
+	}
 	gameObjects.clear();
+	m_enemies.clear();
 	renderer.destroy();
 }
 
@@ -119,6 +131,10 @@ void Game::update()
 		(*i)->Update(deltaTime);
 	}
 
+	for (std::vector<Enemy*>::iterator i = m_enemies.begin(); i != m_enemies.end(); i++) {
+		(*i)->Update(deltaTime);
+	}
+
 	//save the curent time for next frame
 	lastTime = currentTime;
 }
@@ -130,6 +146,10 @@ void Game::render()
 	
 	//render every object
 	for (std::vector<GameObject*>::iterator i = gameObjects.begin(), e= gameObjects.end(); i != e; i++) {
+		(*i)->Render(renderer);
+	}
+
+	for (std::vector<Enemy*>::iterator i = m_enemies.begin(), e = m_enemies.end(); i != e; i++) {
 		(*i)->Render(renderer);
 	}
 
