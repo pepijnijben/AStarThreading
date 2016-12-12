@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "InputManager.h"
+#include <iostream>
 
 
 InputManager::InputManager()
@@ -47,7 +48,10 @@ void InputManager::ProcessInput()
 			case SDL_KEYDOWN:
 				switch (e.key.keysym.sym) {
 					case SDLK_SPACE:
-						Dispatch(EventListener::Event::PAUSE);
+						Dispatch(EventListener::Event::SPACE);
+						break;
+					case SDLK_f:
+						//Dispatch(EventListener::Event::FOLLOW);
 						break;
 					case SDLK_RIGHT:
 						Dispatch(EventListener::Event::RIGHTARROW);
@@ -61,9 +65,18 @@ void InputManager::ProcessInput()
 					case SDLK_DOWN:
 						Dispatch(EventListener::Event::DOWNARROW);
 						break;
+					case SDLK_ESCAPE:
+						Dispatch(EventListener::Event::QUIT);
+						break;
 				}
 				break;
-			
+			case SDL_KEYUP:
+				switch (e.key.keysym.sym) {
+				case SDLK_f:
+					Dispatch(EventListener::Event::FOLLOW);
+					break;
+				}
+				break;
 			/* SDL_QUIT event (window close) */
 			case SDL_QUIT:
 				Dispatch(EventListener::Event::QUIT);

@@ -25,14 +25,17 @@ void AStar::ClearAll(int thread_id)
 	}
 }
 
-void AStar::DestroyAll(std::map<std::string, Node*> * map)
+void AStar::DestroyAll()
 {
-	for (std::map<std::string, Node*>::iterator itr = map->begin(); itr != map->end(); itr++)
+	for (auto & map : nodeMaps)
 	{
-		delete itr->second;
-	}
+		for (std::map<std::string, Node*>::iterator itr = map.second.begin(); itr != map.second.end(); itr++)
+		{
+			delete itr->second;
+		}
 
-	map->clear();
+		map.second.clear();
+	}
 }
 
 std::map<std::string, Node*> AStar::DefineGraph()
@@ -88,6 +91,7 @@ std::map<std::string, Node*> AStar::DefineGraph()
 			}
 		}
 	}
+	cout << "Done defining graph" << endl;
 	return nodeMap;
 }
 
@@ -122,37 +126,102 @@ std::vector<Point2D> AStar::GetEdges(std::map<std::string, Node*> * map, Point2D
 	return points;
 }
 
-std::vector<Point2D> AStar::PathFromTo(Point2D from, Point2D to)
+//std::vector<Point2D> AStar::PathFromTo(Point2D from, Point2D to)
+//{
+//	std::map<std::string, Node*> nodeMap;
+//	int thread_id = SDL_ThreadID();
+//
+//	if (nodeMaps.find(thread_id) != nodeMaps.end())
+//	{
+//		ClearAll(thread_id);
+//		nodeMap = nodeMaps[thread_id];
+//	}
+//	else
+//	{
+//		nodeMap = DefineGraph();
+//		nodeMaps[thread_id] = nodeMap;
+//	}
+//
+//	if (!NodeExists(&nodeMap, from) || !NodeExists(&nodeMap, to))
+//	{
+//		std::cout << "Could not find the from/to nodes, canceling A*" << std::endl;
+//		return std::vector<Point2D>();
+//	}
+//
+//	if (from == to)
+//		return std::vector<Point2D>();
+//	std::priority_queue<AStarValue> pq;
+//	bool test = false;
+//	pq.push(AStarValue(nodeMap[from.ToString()], 0, ManhattanDistance(from, to)));
+//	while (!pq.empty())
+//	{
+//		AStarValue aStarNode = pq.top();
+//		Node * node = aStarNode.node;
+//		pq.pop();
+//
+//		if (node->state == NodeState::Closed)
+//		{
+//			continue;
+//		}
+//		node->state = NodeState::Closed;
+//
+//		for(auto adj : node->adjacent)
+//		{
+//			if (adj.destination->pos == to)
+//			{
+//				adj.destination->parent = node;
+//				return BacktrackRoute(adj.destination);
+//			}
+//			if (adj.destination->state == NodeState::Closed)
+//			{
+//				continue;
+//			}
+//
+//			float newDistance = aStarNode.Travelled + adj.cost;
+//
+//			if (adj.destination->state == NodeState::Open) // Seen before but not closed yet
+//			{
+//				if (newDistance < adj.destination->distance)
+//				{
+//					adj.destination->parent = node;
+//					adj.destination->distance = newDistance;
+//					pq.push(AStarValue(adj.destination, newDistance, ManhattanDistance(adj.destination->pos, to)));
+//				}
+//			}
+//			else
+//			{
+//				adj.destination->parent = node;
+//				adj.destination->distance = newDistance;
+//				adj.destination->state = NodeState::Open;
+//				pq.push(AStarValue(adj.destination, newDistance, ManhattanDistance(adj.destination->pos, to)));
+//			}
+//		}
+//	}
+//
+//	return std::vector<Point2D>();
+//}
+
+std::vector<Point2D> AStar::PathFromTo(vector<Tile> map, Point2D from, Point2D to)
 {
-	std::map<std::string, Node*> nodeMap;
-	int thread_id = SDL_ThreadID();
-
-	if (nodeMaps.find(thread_id) != nodeMaps.end())
-	{
-		ClearAll(thread_id);
-		nodeMap = nodeMaps[thread_id];
-	}
-	else
-	{
-		nodeMap = DefineGraph();
-		nodeMaps[thread_id] = nodeMap;
-	}
-
-	if (!NodeExists(&nodeMap, from) || !NodeExists(&nodeMap, to))
+	/*if (!NodeExists(&nodeMap, from) || !NodeExists(&nodeMap, to))
 	{
 		std::cout << "Could not find the from/to nodes, canceling A*" << std::endl;
 		return std::vector<Point2D>();
-	}
+	}*/
+
+	int fromId = ((from.x / Game::TileSize) * Game::TileCount) + (from.y / Game::TileSize);
+	int toId = ((to.x / Game::TileSize) * Game::TileCount) + (to.y / Game::TileSize);
 
 	if (from == to)
 		return std::vector<Point2D>();
+
 	std::priority_queue<AStarValue> pq;
-	bool test = false;
-	pq.push(AStarValue(nodeMap[from.ToString()], 0, ManhattanDistance(from, to)));
+	pq.push(AStarValue(&map[fromId], 0, ManhattanDistance(from, to)));
+
 	while (!pq.empty())
 	{
 		AStarValue aStarNode = pq.top();
-		Node * node = aStarNode.node;
+		Tile * node = aStarNode.node;
 		pq.pop();
 
 		if (node->state == NodeState::Closed)
@@ -161,35 +230,51 @@ std::vector<Point2D> AStar::PathFromTo(Point2D from, Point2D to)
 		}
 		node->state = NodeState::Closed;
 
-		for(auto adj : node->adjacent)
+		int currentId = ((node->m_rect.pos.x / Game::TileSize) * Game::TileCount) + (node->m_rect.pos.y / Game::TileSize);
+
+		vector<Tile *> adjacent;
+
+		if (currentId % Game::TileCount < Game::TileCount - 1)
+			adjacent.push_back(&map[currentId + 1]);
+
+		if (currentId % Game::TileCount > 0)
+			adjacent.push_back(&map[currentId - 1]);
+
+		if (currentId / Game::TileCount < Game::TileCount - 1)
+			adjacent.push_back(&map[currentId + Game::TileCount]);
+
+		if (currentId / Game::TileCount > 0)
+			adjacent.push_back(&map[currentId - Game::TileCount]);
+
+		for (auto adj : adjacent)
 		{
-			if (adj.destination->pos == to)
+			if (adj->m_rect.pos == to)
 			{
-				adj.destination->parent = node;
-				return BacktrackRoute(adj.destination);
+				adj->parent = node;
+				return BacktrackRoute(adj);
 			}
-			if (adj.destination->state == NodeState::Closed)
+			if (adj->state == NodeState::Closed)
 			{
 				continue;
 			}
 
-			float newDistance = aStarNode.Travelled + adj.cost;
+			float newDistance = aStarNode.Travelled + 20;
 
-			if (adj.destination->state == NodeState::Open) // Seen before but not closed yet
+			if (adj->state == NodeState::Open) // Seen before but not closed yet
 			{
-				if (newDistance < adj.destination->distance)
+				if (newDistance < adj->distance)
 				{
-					adj.destination->parent = node;
-					adj.destination->distance = newDistance;
-					pq.push(AStarValue(adj.destination, newDistance, ManhattanDistance(adj.destination->pos, to)));
+					adj->parent = node;
+					adj->distance = newDistance;
+					pq.push(AStarValue(adj, newDistance, ManhattanDistance(adj->m_rect.pos, to)));
 				}
 			}
 			else
 			{
-				adj.destination->parent = node;
-				adj.destination->distance = newDistance;
-				adj.destination->state = NodeState::Open;
-				pq.push(AStarValue(adj.destination, newDistance, ManhattanDistance(adj.destination->pos, to)));
+				adj->parent = node;
+				adj->distance = newDistance;
+				adj->state = NodeState::Open;
+				pq.push(AStarValue(adj, newDistance, ManhattanDistance(adj->m_rect.pos, to)));
 			}
 		}
 	}
@@ -197,11 +282,18 @@ std::vector<Point2D> AStar::PathFromTo(Point2D from, Point2D to)
 	return std::vector<Point2D>();
 }
 
-std::vector<Point2D> AStar::PathFromTo(int fx, int fy, int tx, int ty)
+//std::vector<Point2D> AStar::PathFromTo(int fx, int fy, int tx, int ty)
+//{
+//	float offset = 0;
+//	//float offset = Game::TileSize / 2;
+//	return PathFromTo(Point2D(fx * Game::TileSize + offset, fy * Game::TileSize + offset), Point2D(tx * Game::TileSize + offset, ty * Game::TileSize + offset));
+//}
+
+std::vector<Point2D> AStar::PathFromTo(vector<Tile> map, int fx, int fy, int tx, int ty)
 {
 	float offset = 0;
 	//float offset = Game::TileSize / 2;
-	return PathFromTo(Point2D(fx * Game::TileSize + offset, fy * Game::TileSize + offset), Point2D(tx * Game::TileSize + offset, ty * Game::TileSize + offset));
+	return PathFromTo(map, Point2D(fx * Game::TileSize + offset, fy * Game::TileSize + offset), Point2D(tx * Game::TileSize + offset, ty * Game::TileSize + offset));
 }
 
 std::vector<Point2D> AStar::BacktrackRoute(Node * end)
@@ -214,5 +306,18 @@ std::vector<Point2D> AStar::BacktrackRoute(Node * end)
 		routeNode = routeNode->parent;
 	}
 
+	return route;
+}
+
+std::vector<Point2D> AStar::BacktrackRoute(Tile * end)
+{
+	std::vector<Point2D> route;
+	Tile * routeNode = end;
+	while (routeNode != nullptr)
+	{
+		route.insert(route.begin(), routeNode->m_rect.pos);
+		routeNode = routeNode->parent;
+	}
+	int x = 0;
 	return route;
 }

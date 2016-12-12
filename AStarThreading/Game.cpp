@@ -15,8 +15,9 @@ Point2D Game::m_camPos = Point2D(0,0);
 
 Game::Game()
 {
-	pause = false;
 	quit = false;
+	aStarStarted = false;
+	followLeader = false;
 }
 
 Game::~Game()
@@ -24,9 +25,9 @@ Game::~Game()
 }
 
 
-void Game::GetPath(Enemy * e, Point2D from, Point2D to)
+void Game::GetPath(vector<Tile> map, Enemy * e, Point2D from, Point2D to)
 {
-	vector<Point2D> path = aStar.PathFromTo(from.x, from.y, to.x, to.y);
+	vector<Point2D> path = aStar.PathFromTo(map, from.x, from.y, to.x, to.y);
 	e->SetPath(path);
 }
 
@@ -47,9 +48,10 @@ bool Game::init() {
 	renderer.setViewPort(vpRect);
 	
 	lastTime = LTimer::gameTime();
-
+	
 	//want game loop to pause
-	inputManager.AddListener(EventListener::Event::PAUSE, this);
+	inputManager.AddListener(EventListener::Event::FOLLOW, this);
+	inputManager.AddListener(EventListener::Event::SPACE, this);
 	inputManager.AddListener(EventListener::Event::QUIT, this);
 	inputManager.AddListener(EventListener::Event::RIGHTARROW, this);
 	inputManager.AddListener(EventListener::Event::LEFTARROW, this);
@@ -81,7 +83,7 @@ bool Game::init() {
 					if ((currentWallCounter % 2 == 0 && y != 0)
 						|| (currentWallCounter % 2 == 1) && y != TileCount - 1)
 					{
-						gameObjects.push_back(new Tile(x * TileSize, y * TileSize, TileSize, Colour(255, 0, 0)));
+						gameObjects.push_back(Tile(x * TileSize, y * TileSize, TileSize, Colour(255, 0, 0), 1));
 						continue;
 					}
 				}
@@ -89,11 +91,11 @@ bool Game::init() {
 
 			if (coll % 2 == 0)
 			{
-				gameObjects.push_back(new Tile(x * TileSize, y * TileSize, TileSize, Colour(150, 150, 150)));
+				gameObjects.push_back(Tile(x * TileSize, y * TileSize, TileSize, Colour(150, 150, 150)));
 			}
 			else
 			{
-				gameObjects.push_back(new Tile(x * TileSize, y * TileSize, TileSize, Colour(66, 66, 66)));
+				gameObjects.push_back(Tile(x * TileSize, y * TileSize, TileSize, Colour(66, 66, 66)));
 			}
 		}
 	}
@@ -119,20 +121,28 @@ bool Game::init() {
 void Game::destroy()
 {
 	//empty out the game object vector before quitting
-	for (std::vector<Tile*>::iterator i = gameObjects.begin(); i != gameObjects.end(); i++) {
+	/*for (std::vector<Tile*>::iterator i = gameObjects.begin(); i != gameObjects.end(); i++) {
 		delete *i;
-	}
+	}*/
 	for (std::vector<Enemy*>::iterator i = m_enemies.begin(); i != m_enemies.end(); i++) {
 		delete *i;
 	}
 	gameObjects.clear();
 	m_enemies.clear();
 	renderer.destroy();
+
+	cout << "Cleaned everything up" << endl;
 }
 
 //** calls update on all game entities*/
 void Game::update()
 {
+	if (followLeader)
+	{
+		m_camPos.x = m_enemies[0]->GetPos().x * -1 + 400;
+		m_camPos.y = m_enemies[0]->GetPos().y * -1 + 300;
+	}
+
 	unsigned int currentTime = LTimer::gameTime();//millis since game started
 	unsigned int deltaTime = currentTime - lastTime;//time since last update
 
@@ -160,15 +170,10 @@ void Game::render()
 			int index = (x * TileCount) + y;
 			if (index < size && index >= 0)
 			{
-				gameObjects[index]->Render(renderer);
+				gameObjects[index].Render(renderer);
 			}
 		}
 	}
-
-	//render every object
-	/*for (std::vector<Tile*>::iterator i = gameObjects.begin(), e= gameObjects.end(); i != e; i++) {
-		(*i)->Render(renderer);
-	}*/
 
 	for (std::vector<Enemy*>::iterator i = m_enemies.begin(), e = m_enemies.end(); i != e; i++) {
 		(*i)->Render(renderer);
@@ -188,8 +193,7 @@ void Game::loop()
 
 		inputManager.ProcessInput();
 
-		if(!pause) //in pause mode don't bother updateing
-			update();
+		update();
 		render();
 
 		int frameTicks = capTimer.getTicks();//time since start of frame
@@ -202,10 +206,6 @@ void Game::loop()
 }
 
 void Game::onEvent(EventListener::Event evt) {
-
-	if (evt == EventListener::Event::PAUSE) {
-		pause = !pause;
-	}
 	
 	if (evt == EventListener::Event::QUIT) {
 		quit=true;
@@ -226,5 +226,35 @@ void Game::onEvent(EventListener::Event evt) {
 	if (evt == EventListener::Event::DOWNARROW)
 	{
 		m_camPos.y -= TileSize;
+	}
+
+	if (evt==EventListener::Event::SPACE)
+	{
+		StartAStar();
+	}
+
+	if (evt == EventListener::Event::FOLLOW)
+	{
+		followLeader = !followLeader;
+	}
+}
+
+void Game::StartAStar()
+{
+	if (!aStarStarted)
+	{
+		aStarStarted = true;
+
+		for(auto & enemy : m_enemies)
+		{
+			Point2D pos = enemy->GetPos();
+			int x = pos.x / TileSize;
+			int y = pos.y / TileSize;
+
+			threadPool.AddJob(bind(&Game::GetPath, this, gameObjects, enemy, Point2D(x, y), Point2D()));
+		}
+
+
+		cout << "Started A*" << endl;
 	}
 }

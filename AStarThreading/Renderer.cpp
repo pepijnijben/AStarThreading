@@ -75,6 +75,23 @@ void Renderer::drawRect(const Rect& r, const Colour& c) {
 
 }
 
+void Renderer::drawRect(const Rect & r)
+{
+	SDL_SetRenderDrawColor(sdl_renderer, 255, 255, 0, 255);
+	SDL_Rect sr;
+	sr.h = (int)r.size.h;
+	sr.w = (int)r.size.w;
+	sr.x = (int)r.pos.x;
+	sr.y = (int)r.pos.y;
+
+	sr.x += Game::m_camPos.x;
+	sr.y += Game::m_camPos.y;
+
+	SDL_RenderFillRect(sdl_renderer, &sr);
+	SDL_SetRenderDrawColor(sdl_renderer, 255, 255, 255, 255);
+	SDL_RenderDrawRect(sdl_renderer, &sr);
+}
+
 //draw a rectin world coordinates
 void Renderer::drawWorldRect(const Rect &r, const Colour &c)
 {

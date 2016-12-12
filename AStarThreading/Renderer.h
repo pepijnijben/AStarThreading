@@ -29,6 +29,7 @@ public:
 	Renderer();
 	bool init(const Size2D&, const char*);
 	void drawRect(const Rect&, const Colour&);
+	void drawRect(const Rect&);
 	void drawWorldRect(const Rect&, const Colour&);
 	void present();
 	void clear(const Colour&);

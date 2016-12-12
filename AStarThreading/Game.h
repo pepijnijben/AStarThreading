@@ -16,25 +16,28 @@ class Game:public EventListener
 	Renderer renderer;
 	ThreadPool threadPool;
 
-	std::vector<Tile*> gameObjects;
+	std::vector<Tile> gameObjects;
 	std::vector<Enemy*> m_enemies;
 	AStar aStar;
 
 	unsigned int lastTime;//time of last update;
 
-	bool pause;
 	bool quit;
+	bool aStarStarted;
+	bool followLeader;
 
-	int currentSimulation = 2;
+	int currentSimulation = 1;
 	const int tileCount[3] = { 30, 100, 1000 };
 	const int numberOfWalls[3] = { 3, 6, 12 };
-	const int enemyCount[3] = { 5, 50, 500 };
+	const int enemyCount[3] = { 5, 50, 1 };
+
+	void StartAStar();
 
 public:
 	Game();
 	~Game();
 
-	void GetPath(Enemy * e, Point2D from, Point2D to);
+	void GetPath(vector<Tile> map, Enemy * e, Point2D from, Point2D to);
 	bool init();
 	void destroy();
 

@@ -98,23 +98,3 @@ public:
 
 	Edge(Node * n, float c) : destination(n), cost(c) { }
 };
-
-class AStarValue
-{
-public:
-	float Travelled;
-	float DistanceToTarget;
-	Node * node;
-
-	AStarValue(Node * n, float t, float d)
-	{
-		node = n;
-		Travelled = t;
-		DistanceToTarget = d;
-	}
-
-	bool operator<(const AStarValue& lhs) const
-	{ 
-		return (lhs.Travelled + lhs.DistanceToTarget) < (Travelled + DistanceToTarget);
-	}
-};

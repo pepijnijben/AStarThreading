@@ -27,7 +27,7 @@ public:
 		if (m_path.size() > 0)
 		{
 			tick++;
-			if (tick > 10)
+			if (tick > 2)
 			{
 				m_rect.pos = m_path[0];
 				m_path.erase(m_path.begin());
@@ -37,4 +37,5 @@ public:
 	};
 
 	void SetPath(std::vector<Point2D> path) { m_path = path; };
+	Point2D GetPos() { return m_rect.pos; };
 };

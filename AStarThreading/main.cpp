@@ -6,7 +6,6 @@
 using namespace std;
 #include "Game.h"
 
-
 /**Create and initialises an instance of game, and clean up when the game is closed*/
 
 int main()
@@ -22,7 +21,9 @@ int main()
 	//run the game loop
 	game.loop();
 
+	// Clean up the game
 	game.destroy();
+	SDL_Quit();
 
 	return 0;
 }

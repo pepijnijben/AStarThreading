@@ -10,12 +10,13 @@ public:
 	//list of possible events
 	//add your own events here
 	enum Event {
-		PAUSE,
 		QUIT,
 		RIGHTARROW,
 		LEFTARROW,
 		UPARROW,
 		DOWNARROW,
+		SPACE,
+		FOLLOW
 	};
 
 

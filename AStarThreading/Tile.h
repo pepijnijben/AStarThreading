@@ -4,10 +4,14 @@
 class Tile : public GameObject
 {
 private:
-	Rect m_rect;
 	Colour m_col;
 public:
-	Tile(float x, float y, float size, Colour color) : m_col(color)
+	Rect m_rect;
+	float distance;
+	uint8_t state;
+	Tile * parent;
+
+	Tile(float x, float y, float size, Colour color, uint8_t s = 0) : m_col(color), state(s), parent(nullptr)
 	{
 		m_rect.pos.x = x;
 		m_rect.pos.y = y;
