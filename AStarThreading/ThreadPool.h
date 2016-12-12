@@ -52,6 +52,7 @@ public:
 
 		function<void()> next = m_tasks.front();
 		m_tasks.pop();
+		cout << m_tasks.size() << " tasks left in thread pool" << endl;
 		SDL_UnlockMutex(m_queLock);
 		next();
 	}

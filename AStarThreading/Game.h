@@ -16,7 +16,8 @@ class Game:public EventListener
 	Renderer renderer;
 	ThreadPool threadPool;
 
-	std::vector<Tile> gameObjects;
+	SDL_mutex* m_wayPointsLock;
+
 	std::vector<Enemy*> m_enemies;
 	AStar aStar;
 
@@ -25,11 +26,12 @@ class Game:public EventListener
 	bool quit;
 	bool aStarStarted;
 	bool followLeader;
+	bool wayPointsDone;
 
-	int currentSimulation = 1;
+	int currentSimulation;
 	const int tileCount[3] = { 30, 100, 1000 };
-	const int numberOfWalls[3] = { 3, 6, 12 };
-	const int enemyCount[3] = { 5, 50, 1 };
+	const int numberOfWalls[3] = { 3, 6, 18 };
+	const int enemyCount[3] = { 5, 50, 500 };
 
 	void StartAStar();
 
@@ -37,7 +39,8 @@ public:
 	Game();
 	~Game();
 
-	void GetPath(vector<Tile> map, Enemy * e, Point2D from, Point2D to);
+	void GetPath(Enemy * e, Point2D from, Point2D to);
+	void GetWaypointPath(Point2D from, Point2D to);
 	bool init();
 	void destroy();
 
@@ -47,6 +50,9 @@ public:
 
 	void onEvent(EventListener::Event);
 
+	static std::vector<std::vector<Point2D> *> m_waypointPaths;
+	static std::vector<Point2D> m_waypoints;
+	static std::vector<Tile> gameObjects;
 	static Point2D m_camPos;
 	static int TileSize;
 	static int TileCount;

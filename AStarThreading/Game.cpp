@@ -12,12 +12,19 @@ int Game::TileSize = 20;
 int Game::TileCount = 30;
 int Game::WallCount = 3;
 Point2D Game::m_camPos = Point2D(0,0);
+vector<Tile> Game::gameObjects;
+vector<Point2D> Game::m_waypoints;
+vector<vector<Point2D> *> Game::m_waypointPaths;
 
 Game::Game()
 {
 	quit = false;
 	aStarStarted = false;
 	followLeader = false;
+	wayPointsDone = false;
+	m_wayPointsLock = SDL_CreateMutex();
+
+	currentSimulation = 1;
 }
 
 Game::~Game()
@@ -25,10 +32,19 @@ Game::~Game()
 }
 
 
-void Game::GetPath(vector<Tile> map, Enemy * e, Point2D from, Point2D to)
+void Game::GetPath(Enemy * e, Point2D from, Point2D to)
 {
-	vector<Point2D> path = aStar.PathFromTo(map, from.x, from.y, to.x, to.y);
+	vector<Point2D> path = aStar.PathFromTo(from.x, from.y, to.x, to.y);
 	e->SetPath(path);
+}
+
+void Game::GetWaypointPath(Point2D from, Point2D to)
+{
+	vector<Point2D> path = aStar.PathFromTo(from, to);
+
+	SDL_LockMutex(m_wayPointsLock);
+	m_waypointPaths.push_back(new vector<Point2D>(path));
+	SDL_UnlockMutex(m_wayPointsLock);
 }
 
 bool Game::init() {
@@ -78,15 +94,13 @@ bool Game::init() {
 			coll++;
 			if (x % wallEvery == wallAtX)
 			{
-				if (x % wallEvery == wallAtX)
+				if ((currentWallCounter % 2 == 0 && y != 0)
+					|| (currentWallCounter % 2 == 1) && y != TileCount - 1)
 				{
-					if ((currentWallCounter % 2 == 0 && y != 0)
-						|| (currentWallCounter % 2 == 1) && y != TileCount - 1)
-					{
-						gameObjects.push_back(Tile(x * TileSize, y * TileSize, TileSize, Colour(255, 0, 0), 1));
-						continue;
-					}
+					gameObjects.push_back(Tile(x * TileSize, y * TileSize, TileSize, Colour(255, 0, 0), NodeState::Wall));
+					continue;
 				}
+				m_waypoints.push_back(Point2D(x * TileSize, y * TileSize));
 			}
 
 			if (coll % 2 == 0)
@@ -101,8 +115,14 @@ bool Game::init() {
 	}
 	// End generate map
 
-	// Generate waypoints
-
+	// Calculate waypointspath
+	for (int i = m_waypoints.size() - 1; i >= 0; i--)
+	{
+		if (i != 0)
+		{
+			threadPool.AddJob(bind(&Game::GetWaypointPath, this, m_waypoints[i], m_waypoints[i - 1]));
+		}
+	}
 
 	// Generate enemies
 	for (int i = 0; i < enemyCount[currentSimulation]; i++)
@@ -111,7 +131,6 @@ bool Game::init() {
 		float y = (0 + (i / 4));
 		Enemy * e = new Enemy(x * TileSize, y * TileSize, TileSize);
 		m_enemies.push_back(e);
-		//threadPool.AddJob(bind(&Game::GetPath, this, e, Point2D(x, y), Point2D()));
 	}
 	// End generate enemies
 
@@ -120,10 +139,6 @@ bool Game::init() {
 
 void Game::destroy()
 {
-	//empty out the game object vector before quitting
-	/*for (std::vector<Tile*>::iterator i = gameObjects.begin(); i != gameObjects.end(); i++) {
-		delete *i;
-	}*/
 	for (std::vector<Enemy*>::iterator i = m_enemies.begin(); i != m_enemies.end(); i++) {
 		delete *i;
 	}
@@ -137,6 +152,19 @@ void Game::destroy()
 //** calls update on all game entities*/
 void Game::update()
 {
+	if (!wayPointsDone)
+	{
+		SDL_LockMutex(m_wayPointsLock);
+		int size = m_waypointPaths.size();
+		SDL_UnlockMutex(m_wayPointsLock);
+
+		if (size + 1 >= WallCount)
+		{
+			wayPointsDone = true;
+			cout << "Waypoints calculated!" << endl;
+		}
+	}
+
 	if (followLeader)
 	{
 		m_camPos.x = m_enemies[0]->GetPos().x * -1 + 400;
@@ -148,6 +176,31 @@ void Game::update()
 
 	for (std::vector<Enemy*>::iterator i = m_enemies.begin(); i != m_enemies.end(); i++) {
 		(*i)->Update(deltaTime);
+		if (aStarStarted && !(*i)->FindingPath() && (*i)->PathDone() && (*i)->GetPos() != Point2D())
+		{
+			(*i)->FindingPath(true);
+			for (int c = 0; c < m_waypoints.size(); c++)
+			{
+				if (m_waypoints[c] == (*i)->GetPos())
+				{
+					// return waypiont path
+					for (auto & path : Game::m_waypointPaths)
+					{
+						if (path != nullptr && (*i)->GetPos() == path->at(0))
+						{
+							(*i)->SetPath(*(path));
+							continue;
+						}
+					}
+				}
+			}
+			
+			// Only add pathfinding when no waypoint paths are found
+			if ((*i)->FindingPath())
+			{
+				threadPool.AddJob(bind(&Game::GetPath, this, (*i), Point2D((*i)->GetPos().x / TileSize, (*i)->GetPos().y / TileSize), Point2D(0, 0)));
+			}
+		}
 	}
 
 	//save the curent time for next frame
@@ -230,7 +283,14 @@ void Game::onEvent(EventListener::Event evt) {
 
 	if (evt==EventListener::Event::SPACE)
 	{
-		StartAStar();
+		if (!wayPointsDone)
+		{
+			cout << "Wait for waypoints to be done!" << endl;
+		}
+		else
+		{
+			StartAStar();
+		}
 	}
 
 	if (evt == EventListener::Event::FOLLOW)
@@ -251,9 +311,9 @@ void Game::StartAStar()
 			int x = pos.x / TileSize;
 			int y = pos.y / TileSize;
 
-			threadPool.AddJob(bind(&Game::GetPath, this, gameObjects, enemy, Point2D(x, y), Point2D()));
+			enemy->FindingPath(true);
+			threadPool.AddJob(bind(&Game::GetPath, this, enemy, Point2D(x, y), Point2D(0, 0)));
 		}
-
 
 		cout << "Started A*" << endl;
 	}

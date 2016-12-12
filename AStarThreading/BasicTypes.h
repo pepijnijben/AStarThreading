@@ -35,6 +35,11 @@ public:
 		return (a.x == x && a.y == y);
 	}
 
+	bool operator!=(const Point2D& a) const
+	{
+		return (a.x != x || a.y != y);
+	}
+
 	bool operator<(const Point2D& lhs) const
 	{ 
 		float l1 = (float)sqrt(x*x + y*y);
@@ -66,7 +71,7 @@ public:
 
 };
 
-enum NodeState { Untested, Closed, Open };
+enum NodeState { Untested, Closed, Open, Wall };
 
 class Node
 {
