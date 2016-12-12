@@ -84,7 +84,7 @@ bool Game::init() {
 
 	for (int x = 0; x < TileCount; x ++)
 	{
-		int coll = x % 2;
+		int coll = x % 3;
 		if (x % wallEvery == wallAtX)
 		{
 			currentWallCounter++;
@@ -103,9 +103,13 @@ bool Game::init() {
 				m_waypoints.push_back(Point2D(x * TileSize, y * TileSize));
 			}
 
-			if (coll % 2 == 0)
+			if (coll % 3 == 0)
 			{
 				gameObjects.push_back(Tile(x * TileSize, y * TileSize, TileSize, Colour(150, 150, 150)));
+			}
+			else if (coll % 3 == 1)
+			{
+				gameObjects.push_back(Tile(x * TileSize, y * TileSize, TileSize, Colour(200, 200, 200)));
 			}
 			else
 			{
