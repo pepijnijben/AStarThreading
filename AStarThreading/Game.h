@@ -7,6 +7,7 @@
 #include "ThreadPool.h"
 #include "AStar.h"
 #include "Enemy.h"
+#include "Tile.h"
 
 /** The game objct whic manages the game loop*/
 class Game:public EventListener
@@ -15,7 +16,7 @@ class Game:public EventListener
 	Renderer renderer;
 	ThreadPool threadPool;
 
-	std::vector<GameObject*> gameObjects;
+	std::vector<Tile*> gameObjects;
 	std::vector<Enemy*> m_enemies;
 	AStar aStar;
 
@@ -24,7 +25,7 @@ class Game:public EventListener
 	bool pause;
 	bool quit;
 
-	int currentSimulation = 0;
+	int currentSimulation = 2;
 	const int tileCount[3] = { 30, 100, 1000 };
 	const int numberOfWalls[3] = { 3, 6, 12 };
 	const int enemyCount[3] = { 5, 50, 500 };

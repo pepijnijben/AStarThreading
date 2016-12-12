@@ -2,7 +2,6 @@
 #include <iostream>
 #include "LTimer.h"
 #include "Game.h"
-#include "Tile.h"
 
 using namespace std;
 
@@ -67,12 +66,14 @@ bool Game::init() {
 
 	for (int x = 0; x < TileCount; x ++)
 	{
+		int coll = x % 2;
 		if (x % wallEvery == wallAtX)
 		{
 			currentWallCounter++;
 		}
 		for (int y = 0; y < TileCount; y++)
 		{
+			coll++;
 			if (x % wallEvery == wallAtX)
 			{
 				if (x % wallEvery == wallAtX)
@@ -86,7 +87,14 @@ bool Game::init() {
 				}
 			}
 
-			gameObjects.push_back(new Tile(x * TileSize, y * TileSize, TileSize, Colour(0, 255, 0)));
+			if (coll % 2 == 0)
+			{
+				gameObjects.push_back(new Tile(x * TileSize, y * TileSize, TileSize, Colour(150, 150, 150)));
+			}
+			else
+			{
+				gameObjects.push_back(new Tile(x * TileSize, y * TileSize, TileSize, Colour(66, 66, 66)));
+			}
 		}
 	}
 	// End generate map
@@ -101,7 +109,7 @@ bool Game::init() {
 		float y = (0 + (i / 4));
 		Enemy * e = new Enemy(x * TileSize, y * TileSize, TileSize);
 		m_enemies.push_back(e);
-		threadPool.AddJob(bind(&Game::GetPath, this, e, Point2D(x, y), Point2D()));
+		//threadPool.AddJob(bind(&Game::GetPath, this, e, Point2D(x, y), Point2D()));
 	}
 	// End generate enemies
 
@@ -111,7 +119,7 @@ bool Game::init() {
 void Game::destroy()
 {
 	//empty out the game object vector before quitting
-	for (std::vector<GameObject*>::iterator i = gameObjects.begin(); i != gameObjects.end(); i++) {
+	for (std::vector<Tile*>::iterator i = gameObjects.begin(); i != gameObjects.end(); i++) {
 		delete *i;
 	}
 	for (std::vector<Enemy*>::iterator i = m_enemies.begin(); i != m_enemies.end(); i++) {
@@ -128,11 +136,6 @@ void Game::update()
 	unsigned int currentTime = LTimer::gameTime();//millis since game started
 	unsigned int deltaTime = currentTime - lastTime;//time since last update
 
-	//call update on all game objects
-	for (std::vector<GameObject*>::iterator i = gameObjects.begin(); i != gameObjects.end(); i++) {
-		(*i)->Update(deltaTime);
-	}
-
 	for (std::vector<Enemy*>::iterator i = m_enemies.begin(); i != m_enemies.end(); i++) {
 		(*i)->Update(deltaTime);
 	}
@@ -146,10 +149,26 @@ void Game::render()
 {
 	renderer.clear(Colour(0,0,0));// prepare for new frame
 	
-	//render every object
-	for (std::vector<GameObject*>::iterator i = gameObjects.begin(), e= gameObjects.end(); i != e; i++) {
-		(*i)->Render(renderer);
+	int xPos = (m_camPos.x / TileSize) * -1;
+	int yPos = (m_camPos.y / TileSize) * -1;
+	int size = gameObjects.size();
+
+	for(int x = xPos; x < xPos + 40; x++)
+	{
+		for (int y = yPos; y < yPos + 30; y++)
+		{
+			int index = (x * TileCount) + y;
+			if (index < size && index >= 0)
+			{
+				gameObjects[index]->Render(renderer);
+			}
+		}
 	}
+
+	//render every object
+	/*for (std::vector<Tile*>::iterator i = gameObjects.begin(), e= gameObjects.end(); i != e; i++) {
+		(*i)->Render(renderer);
+	}*/
 
 	for (std::vector<Enemy*>::iterator i = m_enemies.begin(), e = m_enemies.end(); i != e; i++) {
 		(*i)->Render(renderer);
@@ -194,18 +213,18 @@ void Game::onEvent(EventListener::Event evt) {
 
 	if (evt == EventListener::Event::RIGHTARROW)
 	{
-		m_camPos.x -= 15.0f;
+		m_camPos.x -= TileSize;
 	}
 	if (evt == EventListener::Event::LEFTARROW)
 	{
-		m_camPos.x += 15.0f;
+		m_camPos.x += TileSize;
 	}
 	if (evt == EventListener::Event::UPARROW)
 	{
-		m_camPos.y += 15.0f;
+		m_camPos.y += TileSize;
 	}
 	if (evt == EventListener::Event::DOWNARROW)
 	{
-		m_camPos.y -= 15.0f;
+		m_camPos.y -= TileSize;
 	}
 }
