@@ -42,6 +42,18 @@ Game::Game()
 	SET_MAX_FPS(60); // Over 1000 no max fps
 	////////////////////////////////////
 
+	cout << "Enter simulation number (0, 1 ,2): ";
+	cin >> currentSimulation;
+
+	cout << "Use thread pool (1 or 0): ";
+	cin >> useThreadPool;
+
+	int fps = 60;
+	cout << "Max FPS (1001 for unlimited): ";
+	cin >> fps;
+
+	SET_MAX_FPS(fps);
+
 	if (currentSimulation == 0)
 	{
 		m_camPos.x = 100;
