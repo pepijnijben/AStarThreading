@@ -26,7 +26,7 @@ Game::Game()
 	finnished = false;
 	m_wayPointsLock = SDL_CreateMutex();
 
-	currentSimulation = 2;
+	currentSimulation = 0;
 
 	if (currentSimulation == 0)
 	{
@@ -86,6 +86,7 @@ bool Game::init() {
 	inputManager.AddListener(EventListener::Event::LEFTARROW, this);
 	inputManager.AddListener(EventListener::Event::UPARROW, this);
 	inputManager.AddListener(EventListener::Event::DOWNARROW, this);
+	inputManager.AddListener(EventListener::Event::RESPAWN, this);
 
 	// Generate map
 	TileCount = tileCount[currentSimulation];
@@ -134,16 +135,8 @@ bool Game::init() {
 	threadPool.AddJob(bind(&Game::GetWaypointPath, this, m_waypoints[0], m_playerPos));
 
 	// Generate enemies
-	for (int i = 0; i < enemyCount[currentSimulation]; i++)
-	{
-		float x = ((TileCount - 4) + i % 4);
-		float y = (0 + (i / 4));
-		Enemy * e = new Enemy(x * TileSize, y * TileSize, TileSize);
-		m_enemies.push_back(e);
-	}
+	RespawnEnemies();
 	// End generate enemies
-
-	
 
 	return true;
 }
@@ -178,14 +171,21 @@ void Game::update()
 
 	if (followLeader)
 	{
-		m_camPos.x = m_enemies[0]->GetPos().x * -1 + 400;
-		m_camPos.y = m_enemies[0]->GetPos().y * -1 + 300;
+		if (m_enemies.size() < enemyCount[currentSimulation])
+		{
+			m_camPos.x = m_playerPos.x * -1 + 400;
+			m_camPos.y = m_playerPos.y * -1 + 300;
+		}
+		else
+		{
+			m_camPos.x = m_enemies[0]->GetPos().x * -1 + 400;
+			m_camPos.y = m_enemies[0]->GetPos().y * -1 + 300;
+		}
 	}
 
 	unsigned int currentTime = LTimer::gameTime();//millis since game started
 	unsigned int deltaTime = currentTime - lastTime;//time since last update
-	int enemysDone = 0;
-	for (std::vector<Enemy*>::iterator i = m_enemies.begin(); i != m_enemies.end(); i++) {
+	for (std::vector<Enemy*>::iterator i = m_enemies.begin(); i != m_enemies.end();) {
 		(*i)->Update(deltaTime);
 		if (aStarStarted && !(*i)->FindingPath() && (*i)->PathDone() && (*i)->GetPos() != m_playerPos)
 		{
@@ -214,14 +214,18 @@ void Game::update()
 		}
 		else if ((*i)->GetPos() == m_playerPos)
 		{
-			enemysDone++;
-			(*i)->SetPath(vector<Point2D>());
+			delete * i;
+			i = m_enemies.erase(i);
+			continue;
 		}
+
+		++i;
 	}
 
 	// Check if all enemies are done
-	if (!finnished && enemysDone == m_enemies.size())
+	if (!finnished && 0 == m_enemies.size())
 	{
+		aStarStarted = false;
 		finnished = true;
 		cout << "Clock ticks: " << SDL_GetTicks() - startTime << endl;
 	}
@@ -324,6 +328,11 @@ void Game::onEvent(EventListener::Event evt) {
 	{
 		followLeader = !followLeader;
 	}
+
+	if (evt == EventListener::Event::RESPAWN)
+	{
+		RespawnEnemies();
+	}
 }
 
 void Game::StartAStar()
@@ -332,6 +341,7 @@ void Game::StartAStar()
 	{
 		startTime = SDL_GetTicks();
 		aStarStarted = true;
+		finnished = false;
 
 		for(auto & enemy : m_enemies)
 		{
@@ -344,5 +354,22 @@ void Game::StartAStar()
 		}
 
 		cout << "Started A*" << endl;
+	}
+}
+
+void Game::RespawnEnemies()
+{
+	if (m_enemies.size() > 0)
+	{
+		cout << "Cant spawn enemies there are still some running around!" << endl;
+		return;
+	}
+
+	for (int i = 0; i < enemyCount[currentSimulation]; i++)
+	{
+		float x = ((TileCount - 4) + i % 4);
+		float y = (0 + (i / 4));
+		Enemy * e = new Enemy(x * TileSize, y * TileSize, TileSize);
+		m_enemies.push_back(e);
 	}
 }

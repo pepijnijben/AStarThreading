@@ -75,6 +75,9 @@ void InputManager::ProcessInput()
 				case SDLK_f:
 					Dispatch(EventListener::Event::FOLLOW);
 					break;
+				case SDLK_r:
+					Dispatch(EventListener::Event::RESPAWN);
+					break;
 				}
 				break;
 			/* SDL_QUIT event (window close) */

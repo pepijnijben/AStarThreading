@@ -16,7 +16,8 @@ public:
 		UPARROW,
 		DOWNARROW,
 		SPACE,
-		FOLLOW
+		FOLLOW,
+		RESPAWN
 	};
 
 

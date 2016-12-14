@@ -39,6 +39,7 @@ class Game:public EventListener
 	const int enemyCount[3] = { 5, 50, 500 };
 
 	void StartAStar();
+	void RespawnEnemies();
 
 public:
 	Game();
