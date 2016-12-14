@@ -28,6 +28,7 @@ class Game:public EventListener
 	bool followLeader;
 	bool wayPointsDone;
 	bool finnished;
+	bool useThreadPool;
 
 	int startTime;
 

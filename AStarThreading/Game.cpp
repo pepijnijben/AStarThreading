@@ -26,7 +26,12 @@ Game::Game()
 	finnished = false;
 	m_wayPointsLock = SDL_CreateMutex();
 
+	////////////////////////////////////
+	//////////// Settings //////////////
+	////////////////////////////////////
 	currentSimulation = 0;
+	useThreadPool = true;
+	////////////////////////////////////
 
 	if (currentSimulation == 0)
 	{
@@ -121,18 +126,21 @@ bool Game::init() {
 		}
 	}
 	// End generate map
+	m_playerPos = Point2D(2 * TileSize, (TileCount / 2) * TileSize);
 
+	cout << "Started calculating waypoints" << endl;
 	// Calculate waypointspath
 	for (int i = m_waypoints.size() - 1; i >= 0; i--)
 	{
 		if (i != 0)
 		{
-			threadPool.AddJob(bind(&Game::GetWaypointPath, this, m_waypoints[i], m_waypoints[i - 1]));
+			// switch for using threadpool or not
+			useThreadPool ? threadPool.AddJob(bind(&Game::GetWaypointPath, this, m_waypoints[i], m_waypoints[i - 1])) : GetWaypointPath(m_waypoints[i], m_waypoints[i - 1]);
 		}
 	}
-	m_playerPos = Point2D(2 * TileSize, (TileCount / 2) * TileSize);
 	// Add waypoint to start position of player
-	threadPool.AddJob(bind(&Game::GetWaypointPath, this, m_waypoints[0], m_playerPos));
+	// switch for using threadpool or not
+	useThreadPool ? threadPool.AddJob(bind(&Game::GetWaypointPath, this, m_waypoints[0], m_playerPos)) : GetWaypointPath(m_waypoints[0], m_playerPos);
 
 	// Generate enemies
 	RespawnEnemies();
@@ -209,6 +217,8 @@ void Game::update()
 			// Only add pathfinding when no waypoint paths are found
 			if ((*i)->FindingPath())
 			{
+				// switch for using threadpool or not
+				!useThreadPool ? GetPath((*i), Point2D((*i)->GetPos().x / TileSize, (*i)->GetPos().y / TileSize), Point2D(m_playerPos.x / TileSize, m_playerPos.y / TileSize)):
 				threadPool.AddJob(bind(&Game::GetPath, this, (*i), Point2D((*i)->GetPos().x / TileSize, (*i)->GetPos().y / TileSize), Point2D(m_playerPos.x / TileSize, m_playerPos.y / TileSize)));
 			}
 		}
@@ -350,6 +360,9 @@ void Game::StartAStar()
 			int y = pos.y / TileSize;
 
 			enemy->FindingPath(true);
+			
+			// switch for using threadpool or not
+			!useThreadPool ? GetPath(enemy, Point2D(x, y), Point2D(m_playerPos.x / TileSize, m_playerPos.y / TileSize)) :
 			threadPool.AddJob(bind(&Game::GetPath, this, enemy, Point2D(x, y), Point2D(m_playerPos.x / TileSize, m_playerPos.y / TileSize)));
 		}
 
