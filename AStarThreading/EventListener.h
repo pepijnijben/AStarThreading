@@ -17,7 +17,8 @@ public:
 		DOWNARROW,
 		SPACE,
 		FOLLOW,
-		RESPAWN
+		RESPAWN,
+		FOLLOWPLAYER
 	};
 
 

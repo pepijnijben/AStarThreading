@@ -1,6 +1,7 @@
 # AStarThreading
 
 ### Controls
- - Press space to start A*
+ - Press SPACE to start A*
  - Press F to toggle follow the leader
+ - Press G to toggle follow the player
  - Press R to respawn enemies

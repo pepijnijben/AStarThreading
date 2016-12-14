@@ -50,14 +50,15 @@ std::vector<Point2D> AStar::PathFromTo(Point2D from, Point2D to)
 		if (currentId % Game::TileCount < Game::TileCount - 1)
 			adjacent.push_back(&map[currentId + 1]);
 
+		if (currentId / Game::TileCount > 0)
+			adjacent.push_back(&map[currentId - Game::TileCount]);
+
 		if (currentId % Game::TileCount > 0)
 			adjacent.push_back(&map[currentId - 1]);
 
 		if (currentId / Game::TileCount < Game::TileCount - 1)
 			adjacent.push_back(&map[currentId + Game::TileCount]);
-
-		if (currentId / Game::TileCount > 0)
-			adjacent.push_back(&map[currentId - Game::TileCount]);
+		
 
 		for (auto adj : adjacent)
 		{
@@ -80,7 +81,7 @@ std::vector<Point2D> AStar::PathFromTo(Point2D from, Point2D to)
 				continue;
 			}
 
-			float newDistance = aStarNode.Travelled + 20;
+			float newDistance = aStarNode.Travelled + 10;
 
 			if (adj->state == NodeState::Open) // Seen before but not closed yet
 			{

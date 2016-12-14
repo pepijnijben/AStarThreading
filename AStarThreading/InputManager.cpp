@@ -75,6 +75,9 @@ void InputManager::ProcessInput()
 				case SDLK_f:
 					Dispatch(EventListener::Event::FOLLOW);
 					break;
+				case SDLK_g:
+					Dispatch(EventListener::Event::FOLLOWPLAYER);
+					break;
 				case SDLK_r:
 					Dispatch(EventListener::Event::RESPAWN);
 					break;

@@ -5,8 +5,14 @@
 
 using namespace std;
 
-const int SCREEN_FPS = 60;
-const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
+int SCREEN_FPS = 60;
+int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
+
+void SET_MAX_FPS(int fps)
+{
+	SCREEN_FPS = fps;
+	SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
+}
 
 int Game::TileSize = 20;
 int Game::TileCount = 30;
@@ -22,21 +28,26 @@ Game::Game()
 	quit = false;
 	aStarStarted = false;
 	followLeader = false;
+	followPlayer = false;
 	wayPointsDone = false;
 	finnished = false;
+	playerUpdate = 0;
 	m_wayPointsLock = SDL_CreateMutex();
 
 	////////////////////////////////////
 	//////////// Settings //////////////
 	////////////////////////////////////
-	currentSimulation = 0;
+	currentSimulation = 0; // 0; 1 or 2
 	useThreadPool = true;
+	SET_MAX_FPS(60); // Over 1000 no max fps
 	////////////////////////////////////
 
 	if (currentSimulation == 0)
 	{
 		m_camPos.x = 100;
 	}
+
+	srand(time(NULL));
 }
 
 Game::~Game()
@@ -85,6 +96,7 @@ bool Game::init() {
 	
 	//want game loop to pause
 	inputManager.AddListener(EventListener::Event::FOLLOW, this);
+	inputManager.AddListener(EventListener::Event::FOLLOWPLAYER, this);
 	inputManager.AddListener(EventListener::Event::SPACE, this);
 	inputManager.AddListener(EventListener::Event::QUIT, this);
 	inputManager.AddListener(EventListener::Event::RIGHTARROW, this);
@@ -164,6 +176,37 @@ void Game::destroy()
 //** calls update on all game entities*/
 void Game::update()
 {
+	// Update Player every half second
+	if (aStarStarted && playerUpdate + 3000 < SDL_GetTicks())
+	{
+		playerUpdate = SDL_GetTicks();
+		int direction = rand() % 4;
+		Point2D moving;
+
+		switch (direction)
+		{
+		case 0:
+			moving.x += TileSize;
+			break;
+		case 1:
+			moving.x -= TileSize;
+			break;
+		case 2:
+			moving.y += TileSize;
+			break;
+		case 3:
+			moving.y -= TileSize;
+			break;
+		}
+
+		m_playerPos = m_playerPos + moving;
+		if (m_playerPos.x < 0 || m_playerPos.y < 0 || m_playerPos.x > TileCount * TileSize || m_playerPos.y > TileCount * TileSize)
+		{
+			m_playerPos = m_playerPos - moving;
+		}
+	}
+	// End Update Player
+
 	if (!wayPointsDone)
 	{
 		SDL_LockMutex(m_wayPointsLock);
@@ -189,6 +232,11 @@ void Game::update()
 			m_camPos.x = m_enemies[0]->GetPos().x * -1 + 400;
 			m_camPos.y = m_enemies[0]->GetPos().y * -1 + 300;
 		}
+	}
+	else if (followPlayer)
+	{
+		m_camPos.x = m_playerPos.x * -1 + 400;
+		m_camPos.y = m_playerPos.y * -1 + 300;
 	}
 
 	unsigned int currentTime = LTimer::gameTime();//millis since game started
@@ -270,7 +318,6 @@ void Game::render()
 	}
 
 	// Draw player
-	//renderer.drawRect(Rect(m_playerPos, Size2D(TileSize, TileSize)), Colour(0, 200, 0));
 	renderer.drawSprite(Rect(m_playerPos, Size2D(TileSize, TileSize)), 4);
 
 	renderer.present();// display the new frame (swap buffers)
@@ -291,10 +338,10 @@ void Game::loop()
 		render();
 
 		int frameTicks = capTimer.getTicks();//time since start of frame
-		if (frameTicks < SCREEN_TICKS_PER_FRAME)
+		if (frameTicks < SCREEN_TICKS_PER_FRAME && SCREEN_TICKS_PER_FRAME - frameTicks > 0)
 		{
 			//Wait remaining time before going to next frame
-			//SDL_Delay(SCREEN_TICKS_PER_FRAME - frameTicks);
+			SDL_Delay(SCREEN_TICKS_PER_FRAME - frameTicks);
 		}
 	}
 }
@@ -337,6 +384,13 @@ void Game::onEvent(EventListener::Event evt) {
 	if (evt == EventListener::Event::FOLLOW)
 	{
 		followLeader = !followLeader;
+		followPlayer = false;
+	}
+
+	if (evt == EventListener::Event::FOLLOWPLAYER)
+	{
+		followPlayer = !followPlayer;
+		followLeader = false;
 	}
 
 	if (evt == EventListener::Event::RESPAWN)
@@ -349,6 +403,7 @@ void Game::StartAStar()
 {
 	if (!aStarStarted)
 	{
+		playerUpdate = SDL_GetTicks();
 		startTime = SDL_GetTicks();
 		aStarStarted = true;
 		finnished = false;
@@ -372,6 +427,7 @@ void Game::StartAStar()
 
 void Game::RespawnEnemies()
 {
+	m_playerPos = Point2D(2 * TileSize, (TileCount / 2) * TileSize);
 	if (m_enemies.size() > 0)
 	{
 		cout << "Cant spawn enemies there are still some running around!" << endl;

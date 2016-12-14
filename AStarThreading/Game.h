@@ -26,6 +26,7 @@ class Game:public EventListener
 	bool quit;
 	bool aStarStarted;
 	bool followLeader;
+	bool followPlayer;
 	bool wayPointsDone;
 	bool finnished;
 	bool useThreadPool;
@@ -33,6 +34,7 @@ class Game:public EventListener
 	int startTime;
 
 	Point2D m_playerPos;
+	int playerUpdate;
 
 	int currentSimulation;
 	const int tileCount[3] = { 30, 100, 1000 };
