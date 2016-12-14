@@ -87,6 +87,9 @@
       <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\SDL\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /y ".\*.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -116,6 +119,10 @@
       <AdditionalDependencies>SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\SDL\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /y ".\*.dll" "$(OutDir)"
+copy /y ".\*.bmp" "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BasicTypes.h" />

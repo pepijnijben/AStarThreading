@@ -28,6 +28,7 @@ class Renderer{
 public:
 	Renderer();
 	bool init(const Size2D&, const char*);
+	void drawSprite(const Rect&, short id);
 	void drawRect(const Rect&, const Colour&);
 	void drawRect(const Rect&);
 	void drawWorldRect(const Rect&, const Colour&);
@@ -37,6 +38,8 @@ public:
 	Rect worldToScreen(const Rect&);
 
 	void setViewPort(const Rect&);
+
+	SDL_Renderer * getSDLRenderer() const { return sdl_renderer; };
 
 	void destroy();
 	~Renderer();

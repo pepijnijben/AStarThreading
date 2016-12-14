@@ -22,7 +22,8 @@ public:
 
 	void Render(Renderer& r) override
 	{
-		r.drawRect(m_rect, m_col);
+		//r.drawRect(m_rect, m_col);
+		r.drawSprite(m_rect, 5);
 	};
 	void Update(unsigned int deltaTime) override
 	{

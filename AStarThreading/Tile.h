@@ -4,14 +4,14 @@
 class Tile : public GameObject
 {
 private:
-	Colour m_col;
+	short m_spriteId;
 public:
 	Rect m_rect;
 	float distance;
 	uint8_t state;
 	Tile * parent;
 
-	Tile(float x, float y, float size, Colour color, uint8_t s = 0) : m_col(color), state(s), parent(nullptr)
+	Tile(float x, float y, float size, short si = 0, uint8_t s = 0) : state(s), parent(nullptr), m_spriteId(si)
 	{
 		m_rect.pos.x = x;
 		m_rect.pos.y = y;
@@ -22,7 +22,7 @@ public:
 
 	void Render(Renderer& r) override
 	{
-		r.drawRect(m_rect, m_col);
+		r.drawSprite(m_rect, m_spriteId);
 	};
 	void Update(unsigned int deltaTime) override 
 	{

@@ -27,6 +27,11 @@ class Game:public EventListener
 	bool aStarStarted;
 	bool followLeader;
 	bool wayPointsDone;
+	bool finnished;
+
+	int startTime;
+
+	Point2D m_playerPos;
 
 	int currentSimulation;
 	const int tileCount[3] = { 30, 100, 1000 };
@@ -50,6 +55,7 @@ public:
 
 	void onEvent(EventListener::Event);
 
+	static SDL_Texture* spritesheet;
 	static std::vector<std::vector<Point2D> *> m_waypointPaths;
 	static std::vector<Point2D> m_waypoints;
 	static std::vector<Tile> gameObjects;

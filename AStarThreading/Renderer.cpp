@@ -57,6 +57,26 @@ bool Renderer::init(const Size2D& winSize,const char* title) {
 	return true;
 }
 
+void Renderer::drawSprite(const Rect & r, short id)
+{
+	SDL_Rect sr;
+	sr.h = (int)r.size.h;
+	sr.w = (int)r.size.w;
+	sr.x = (int)r.pos.x;
+	sr.y = (int)r.pos.y;
+
+	sr.x += Game::m_camPos.x;
+	sr.y += Game::m_camPos.y;
+
+	SDL_Rect spritePos;
+	spritePos.h = Game::TileSize;
+	spritePos.w = Game::TileSize;
+	spritePos.x = id * Game::TileSize;
+	spritePos.y = 0;
+
+	SDL_RenderCopy(sdl_renderer, Game::spritesheet, &spritePos, &sr);
+}
+
 //draw a rect in pixel coordinates
 void Renderer::drawRect(const Rect& r, const Colour& c) {
 	SDL_SetRenderDrawColor(sdl_renderer, c.r, c.g, c.b, c.a);
@@ -70,9 +90,8 @@ void Renderer::drawRect(const Rect& r, const Colour& c) {
 	sr.y += Game::m_camPos.y;
 
 	SDL_RenderFillRect(sdl_renderer, &sr);
-	SDL_SetRenderDrawColor(sdl_renderer, 255, 255, 255, 255);
-	SDL_RenderDrawRect(sdl_renderer, &sr);
-
+	/*SDL_SetRenderDrawColor(sdl_renderer, 255, 255, 255, 255);
+	SDL_RenderDrawRect(sdl_renderer, &sr);*/
 }
 
 void Renderer::drawRect(const Rect & r)
